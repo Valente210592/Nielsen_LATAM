@@ -1,0 +1,65 @@
+# Logs
+logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
+
+# Diagnostic reports
+report.[0-9]*.[0-9]*.[0-9]*.[0-9]*.json
+
+# Runtime data
+pids
+*.pid
+*.seed
+*.pid.lock
+
+# Dependency directories
+node_modules/
+
+# Production build artifacts
+dist/
+dist-ssr/
+*.local
+
+# Environment variables & secrets
+.env
+.env.*
+!.env.example
+login-config-temp.json
+
+# Editor & OS files
+.vscode/*
+!.vscode/extensions.json
+.idea
+.DS_Store
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+Thumbs.db
+
+# Temporary scratch scripts
+scratch/
+test_*.js
+test_*.cjs
+test_*.mjs
+check_*.cjs
+check_*.js
+explore_*.cjs
+find_*.cjs
+compare_*.js
+get_view_def.*
+update_latam_view.js
+upload_catalog.js
+switch_to_latam.js
+latam_view_orig.sql
+
+# Large raw print assets (>100MB)
+**/ALTA 300/**
+**/ALTA 300/
+*300.png
+*300.PNG
