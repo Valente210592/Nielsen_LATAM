@@ -28,6 +28,12 @@ import GuatemalaGrowthDriversView from './views/GuatemalaGrowthDriversView';
 import GuatemalaMarcaCanalView from './views/GuatemalaMarcaCanalView';
 import GuatemalaView from './views/GuatemalaView';
 import SemanticModelView from './views/SemanticModelView';
+import ColombiaPortadaView from './views/ColombiaPortadaView';
+import ColombiaOverviewView from './views/ColombiaOverviewView';
+import ColombiaMarcaCanalesView from './views/ColombiaMarcaCanalesView';
+import ColombiaCanalesMarcaView from './views/ColombiaCanalesMarcaView';
+import ColombiaMatrizKpisView from './views/ColombiaMatrizKpisView';
+import ColombiaMatrizKpisRegionView from './views/ColombiaMatrizKpisRegionView';
 
 // ==========================================
 // ERROR BOUNDARY
@@ -1572,6 +1578,38 @@ export default function App() {
 
             {(currentView === 'mapa_gt' || currentView === 'mapa' || currentView === 'guatemala' || currentView === 'marca_region_gt') && (
               <GuatemalaView onBack={() => setCurrentView('portada')} />
+            )}
+          </>
+        )}
+
+        {/* 4. ECOSISTEMA COLOMBIA */}
+        {currentCountry === 'CO' && (
+          <>
+            {currentView === 'portada' && (
+              <ColombiaPortadaView 
+                onNavigate={(viewId) => setCurrentView(viewId)} 
+                onBackToMaster={handleBackToMaster}
+              />
+            )}
+
+            {(currentView === 'overview_co' || currentView === 'overview') && (
+              <ColombiaOverviewView onBackToPortada={() => setCurrentView('portada')} />
+            )}
+
+            {(currentView === 'marca_x_canales_co' || currentView === 'marca_x_canales' || currentView === 'marca') && (
+              <ColombiaMarcaCanalesView onBackToPortada={() => setCurrentView('portada')} />
+            )}
+
+            {(currentView === 'canales_x_marca_co' || currentView === 'canales_x_marca' || currentView === 'canal') && (
+              <ColombiaCanalesMarcaView onBackToPortada={() => setCurrentView('portada')} />
+            )}
+
+            {(currentView === 'matriz_kpis_co' || currentView === 'matriz_kpis') && (
+              <ColombiaMatrizKpisView onBackToPortada={() => setCurrentView('portada')} />
+            )}
+
+            {(currentView === 'matriz_kpis_reg_co' || currentView === 'matriz_kpis_reg' || currentView === 'matriz_regiones') && (
+              <ColombiaMatrizKpisRegionView onBackToPortada={() => setCurrentView('portada')} />
             )}
           </>
         )}

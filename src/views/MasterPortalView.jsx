@@ -6,8 +6,8 @@ const MasterPortalView = ({ onSelectCountry, onOpenSemanticModel }) => {
       id: 'CO',
       name: 'Colombia',
       flag: '/assets/Banderas/Colombia.png',
-      enabled: false,
-      status: 'Próximamente'
+      enabled: true,
+      status: 'Disponible'
     },
     {
       id: 'PE',

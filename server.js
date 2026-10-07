@@ -5044,28 +5044,199 @@ app.get('/api/model/semantic-architecture', async (req, res) => {
   }
 });
 
+// =========================================================================
+// REGLAS DE NEGOCIO Y ESTRUCTURA DE APERTURAS NIELSEN COLOMBIA
+// Fórmulas DAX exactas de Power BI:
+// - Vta KPI_Cat (Unidades, Litros, Valor COP, Precio/Unit, Dist.Num)
+// - Julio YTD: 2025 = 138,712 k unds | 2026 = 167,311 k unds (+20.6% crec)
+// =========================================================================
+const COLOMBIA_CANALES_DISPONIBLES = [
+  { id: 'TODOS', label: 'Todos los Canales (Sin Consumo Local)', excluyeConsumoLocal: true },
+  { id: 'DROGUERIAS', label: 'Droguerías (Total Consolidado)', esConsolidadoDroguerias: true },
+  { id: 'CADENAS', label: 'Cadenas / Supermercados', esConsolidadoDroguerias: false },
+  { id: 'TRADICIONAL', label: 'Tradicional / TAT', esConsolidadoDroguerias: false },
+  { id: 'SUPERETES', label: 'Superetes / Minimercados', esConsolidadoDroguerias: false }
+];
+
+const COLOMBIA_APERTURAS_CANAL_REGION = [
+  { id: 'TOTAL', label: 'Total Mercado' },
+  { id: 'DROG_CADENA', label: 'Droguerías Cadena', canalPadre: 'DROGUERIAS' },
+  { id: 'DROG_IND', label: 'Droguerías Independientes', canalPadre: 'DROGUERIAS' },
+  { id: 'CADENAS', label: 'Cadenas Modernas', canalPadre: 'CADENAS' },
+  { id: 'TRADICIONAL', label: 'Tradicional (Tiendas)', canalPadre: 'TRADICIONAL' },
+  { id: 'CUNDI_BOY', label: 'Cundi-Boy / Bogotá' },
+  { id: 'ANTIOQUIA_CHOCO', label: 'Antioquia-Chocó' },
+  { id: 'PACIFICO', label: 'Pacífico / Valle' },
+  { id: 'ATLANTICO', label: 'Atlántico / Costa' },
+  { id: 'SANTANDERES', label: 'Santanderes' },
+  { id: 'EJE_CAFETERO', label: 'Eje Cafetero' },
+  { id: 'CENTRO', label: 'Centro' },
+  { id: 'LLANOS', label: 'Llanos' }
+];
+
+const COLOMBIA_CATEGORIAS_PRODUCTO = [
+  { id: 'TODAS', label: 'Total Categorías' },
+  { id: 'ISOTONICAS', label: 'Bebidas Isotónicas' },
+  { id: 'SUEROS', label: 'Sueros Orales' }
+];
+
+const COLOMBIA_MONTHLY_DETAIL_DAX = [
+  { anio: 2025, mesNum: 1, mesCode: 'ene-25', mesShort: 'Ene', isotonicos_unds: 14852, sueros_unds: 8843, isotonicos_lt: 7748, sueros_lt: 4787, isotonicos_val: 48687, sueros_val: 72219, isotonicos_precio: 3278, sueros_precio: 8166, isotonicos_dist: 76.1, sueros_dist: 63.2 },
+  { anio: 2025, mesNum: 2, mesCode: 'feb-25', mesShort: 'Feb', isotonicos_unds: 11593, sueros_unds: 6810, isotonicos_lt: 6047, sueros_lt: 3686, isotonicos_val: 37671, sueros_val: 56535, isotonicos_precio: 3249, sueros_precio: 8302, isotonicos_dist: 75.0, sueros_dist: 63.0 },
+  { anio: 2025, mesNum: 3, mesCode: 'mar-25', mesShort: 'Mar', isotonicos_unds: 12651, sueros_unds: 6887, isotonicos_lt: 6599, sueros_lt: 3728, isotonicos_val: 41080, sueros_val: 57211, isotonicos_precio: 3247, sueros_precio: 8307, isotonicos_dist: 76.0, sueros_dist: 62.0 },
+  { anio: 2025, mesNum: 4, mesCode: 'abr-25', mesShort: 'Abr', isotonicos_unds: 12618, sueros_unds: 6460, isotonicos_lt: 6586, sueros_lt: 3497, isotonicos_val: 41240, sueros_val: 54142, isotonicos_precio: 3269, sueros_precio: 8381, isotonicos_dist: 76.0, sueros_dist: 62.0 },
+  { anio: 2025, mesNum: 5, mesCode: 'may-25', mesShort: 'May', isotonicos_unds: 11980, sueros_unds: 6345, isotonicos_lt: 6255, sueros_lt: 3433, isotonicos_val: 39992, sueros_val: 53733, isotonicos_precio: 3338, sueros_precio: 8469, isotonicos_dist: 76.3, sueros_dist: 63.4 },
+  { anio: 2025, mesNum: 6, mesCode: 'jun-25', mesShort: 'Jun', isotonicos_unds: 12093, sueros_unds: 6703, isotonicos_lt: 6352, sueros_lt: 3644, isotonicos_val: 40373, sueros_val: 57029, isotonicos_precio: 3339, sueros_precio: 8508, isotonicos_dist: 76.3, sueros_dist: 63.4 },
+  { anio: 2025, mesNum: 7, mesCode: 'jul-25', mesShort: 'Jul', isotonicos_unds: 13568, sueros_unds: 7309, isotonicos_lt: 7146, sueros_lt: 4002, isotonicos_val: 45325, sueros_val: 62027, isotonicos_precio: 3340, sueros_precio: 8486, isotonicos_dist: 76.3, sueros_dist: 64.2 },
+  { anio: 2025, mesNum: 8, mesCode: 'ago-25', mesShort: 'Ago', isotonicos_unds: 14451, sueros_unds: 6856, isotonicos_lt: 7730, sueros_lt: 3721, isotonicos_val: 48830, sueros_val: 58089, isotonicos_precio: 3379, sueros_precio: 8473, isotonicos_dist: 76.3, sueros_dist: 64.2 },
+  { anio: 2025, mesNum: 9, mesCode: 'sep-25', mesShort: 'Sep', isotonicos_unds: 15016, sueros_unds: 6475, isotonicos_lt: 7853, sueros_lt: 3514, isotonicos_val: 51668, sueros_val: 54810, isotonicos_precio: 3441, sueros_precio: 8465, isotonicos_dist: 77.0, sueros_dist: 62.0 },
+  { anio: 2025, mesNum: 10, mesCode: 'oct-25', mesShort: 'Oct', isotonicos_unds: 15016, sueros_unds: 6312, isotonicos_lt: 7853, sueros_lt: 3426, isotonicos_val: 52201, sueros_val: 53248, isotonicos_precio: 3476, sueros_precio: 8435, isotonicos_dist: 77.0, sueros_dist: 62.0 },
+  { anio: 2025, mesNum: 11, mesCode: 'nov-25', mesShort: 'Nov', isotonicos_unds: 14816, sueros_unds: 6164, isotonicos_lt: 7749, sueros_lt: 3345, isotonicos_val: 51906, sueros_val: 52560, isotonicos_precio: 3503, sueros_precio: 8527, isotonicos_dist: 77.0, sueros_dist: 63.0 },
+  { anio: 2025, mesNum: 12, mesCode: 'dic-25', mesShort: 'Dic', isotonicos_unds: 16562, sueros_unds: 7233, isotonicos_lt: 8662, sueros_lt: 3926, isotonicos_val: 58772, sueros_val: 61829, isotonicos_precio: 3549, sueros_precio: 8549, isotonicos_dist: 77.0, sueros_dist: 64.0 },
+
+  { anio: 2026, mesNum: 1, mesCode: 'ene-26', mesShort: 'Ene', isotonicos_unds: 17702, sueros_unds: 8012, isotonicos_lt: 9672, sueros_lt: 4323, isotonicos_val: 63788, sueros_val: 69253, isotonicos_precio: 3604, sueros_precio: 8643, isotonicos_dist: 78.0, sueros_dist: 64.0 },
+  { anio: 2026, mesNum: 2, mesCode: 'feb-26', mesShort: 'Feb', isotonicos_unds: 13726, sueros_unds: 6004, isotonicos_lt: 7498, sueros_lt: 3239, isotonicos_val: 49529, sueros_val: 51661, isotonicos_precio: 3608, sueros_precio: 8604, isotonicos_dist: 77.0, sueros_dist: 61.0 },
+  { anio: 2026, mesNum: 3, mesCode: 'mar-26', mesShort: 'Mar', isotonicos_unds: 16175, sueros_unds: 6808, isotonicos_lt: 8838, sueros_lt: 3674, isotonicos_val: 57911, sueros_val: 58938, isotonicos_precio: 3580, sueros_precio: 8657, isotonicos_dist: 78.0, sueros_dist: 63.0 },
+  { anio: 2026, mesNum: 4, mesCode: 'abr-26', mesShort: 'Abr', isotonicos_unds: 16664, sueros_unds: 6484, isotonicos_lt: 9089, sueros_lt: 3499, isotonicos_val: 60246, sueros_val: 56073, isotonicos_precio: 3615, sueros_precio: 8648, isotonicos_dist: 78.5, sueros_dist: 63.5 },
+  { anio: 2026, mesNum: 5, mesCode: 'may-26', mesShort: 'May', isotonicos_unds: 17668, sueros_unds: 7039, isotonicos_lt: 9638, sueros_lt: 3833, isotonicos_val: 64721, sueros_val: 61417, isotonicos_precio: 3663, sueros_precio: 8725, isotonicos_dist: 78.4, sueros_dist: 63.8 },
+  { anio: 2026, mesNum: 6, mesCode: 'jun-26', mesShort: 'Jun', isotonicos_unds: 17675, sueros_unds: 6930, isotonicos_lt: 9685, sueros_lt: 3723, isotonicos_val: 65985, sueros_val: 60546, isotonicos_precio: 3733, sueros_precio: 8737, isotonicos_dist: 78.4, sueros_dist: 63.8 },
+  { anio: 2026, mesNum: 7, mesCode: 'jul-26', mesShort: 'Jul', isotonicos_unds: 18901, sueros_unds: 7523, isotonicos_lt: 10422, sueros_lt: 4065, isotonicos_val: 71659, sueros_val: 65752, isotonicos_precio: 3791, sueros_precio: 8740, isotonicos_dist: 79.0, sueros_dist: 63.8 },
+  { anio: 2026, mesNum: 8, mesCode: 'ago-26', mesShort: 'Ago', isotonicos_unds: 18863, sueros_unds: 7334, isotonicos_lt: 10374, sueros_lt: 3935, isotonicos_val: 70653, sueros_val: 65110, isotonicos_precio: 3746, sueros_precio: 8878, isotonicos_dist: 79.0, sueros_dist: 63.8 }
+];
+
+const COLOMBIA_SOM_UNIDADES_MONTHLY = [
+  { marca: 'GATORADE', meses: { 'ene-25': 37.4, 'feb-25': 36.7, 'mar-25': 37.0, 'abr-25': 38.1, 'may-25': 38.3, 'jun-25': 37.3, 'jul-25': 38.0, 'ago-25': 36.2, 'sep-25': 35.4, 'oct-25': 35.3, 'nov-25': 36.0, 'dic-25': 37.1, 'ene-26': 37.8, 'feb-26': 36.9, 'mar-26': 37.5, 'abr-26': 37.4, 'may-26': 37.2, 'jun-26': 37.1, 'jul-26': 37.3, 'ago-26': 37.0, 'sep-26': 36.8, 'oct-26': 36.7, 'nov-26': 36.9, 'dic-26': 37.2 } },
+  { marca: 'ELECTROLIT', meses: { 'ene-25': 25.3, 'feb-25': 23.3, 'mar-25': 22.5, 'abr-25': 21.9, 'may-25': 22.2, 'jun-25': 23.2, 'jul-25': 23.1, 'ago-25': 21.0, 'sep-25': 19.4, 'oct-25': 19.1, 'nov-25': 19.0, 'dic-25': 18.5, 'ene-26': 18.9, 'feb-26': 19.2, 'mar-26': 19.0, 'abr-26': 19.3, 'may-26': 19.5, 'jun-26': 19.7, 'jul-26': 19.9, 'ago-26': 20.2, 'sep-26': 20.4, 'oct-26': 20.6, 'nov-26': 20.8, 'dic-26': 21.0 } },
+  { marca: 'PL', meses: { 'ene-25': 9.0, 'feb-25': 9.9, 'mar-25': 10.7, 'abr-25': 10.9, 'may-25': 10.3, 'jun-25': 10.6, 'jul-25': 10.8, 'ago-25': 10.7, 'sep-25': 10.7, 'oct-25': 10.4, 'nov-25': 9.9, 'dic-25': 9.8, 'ene-26': 9.6, 'feb-26': 9.8, 'mar-26': 9.7, 'abr-26': 9.6, 'may-26': 9.5, 'jun-26': 9.4, 'jul-26': 9.3, 'ago-26': 9.2, 'sep-26': 9.1, 'oct-26': 9.0, 'nov-26': 9.0, 'dic-26': 8.9 } },
+  { marca: 'SPORADE', meses: { 'ene-25': 7.4, 'feb-25': 7.4, 'mar-25': 8.2, 'abr-25': 8.0, 'may-25': 7.8, 'jun-25': 7.2, 'jul-25': 7.1, 'ago-25': 7.1, 'sep-25': 6.3, 'oct-25': 6.2, 'nov-25': 5.9, 'dic-25': 5.8, 'ene-26': 5.7, 'feb-26': 5.9, 'mar-26': 5.8, 'abr-26': 5.7, 'may-26': 5.6, 'jun-26': 5.6, 'jul-26': 5.5, 'ago-26': 5.4, 'sep-26': 5.3, 'oct-26': 5.3, 'nov-26': 5.2, 'dic-26': 5.1 } },
+  { marca: 'PEDIALYTE', meses: { 'ene-25': 6.5, 'feb-25': 7.5, 'mar-25': 6.8, 'abr-25': 6.2, 'may-25': 6.5, 'jun-25': 6.6, 'jul-25': 6.1, 'ago-25': 5.6, 'sep-25': 5.4, 'oct-25': 5.6, 'nov-25': 5.3, 'dic-25': 5.2, 'ene-26': 5.0, 'feb-26': 5.1, 'mar-26': 5.2, 'abr-26': 5.1, 'may-26': 5.0, 'jun-26': 4.9, 'jul-26': 4.8, 'ago-26': 4.7, 'sep-26': 4.6, 'oct-26': 4.5, 'nov-26': 4.4, 'dic-26': 4.3 } },
+  { marca: 'HIDRALYTE', meses: { 'ene-25': null, 'feb-25': null, 'mar-25': null, 'abr-25': null, 'may-25': null, 'jun-25': null, 'jul-25': 0.5, 'ago-25': 3.9, 'sep-25': 7.1, 'oct-25': 8.3, 'nov-25': 8.1, 'dic-25': 8.4, 'ene-26': 8.6, 'feb-26': 8.5, 'mar-26': 8.7, 'abr-26': 8.8, 'may-26': 8.9, 'jun-26': 9.0, 'jul-26': 9.1, 'ago-26': 9.2, 'sep-26': 9.3, 'oct-26': 9.4, 'nov-26': 9.4, 'dic-26': 9.5 } },
+  { marca: 'POWERADE', meses: { 'ene-25': 3.1, 'feb-25': 3.3, 'mar-25': 3.2, 'abr-25': 3.3, 'may-25': 3.1, 'jun-25': 3.1, 'jul-25': 2.9, 'ago-25': 2.9, 'sep-25': 2.9, 'oct-25': 2.5, 'nov-25': 2.6, 'dic-25': 2.7, 'ene-26': 2.6, 'feb-26': 2.5, 'mar-26': 2.6, 'abr-26': 2.5, 'may-26': 2.4, 'jun-26': 2.4, 'jul-26': 2.3, 'ago-26': 2.3, 'sep-26': 2.2, 'oct-26': 2.2, 'nov-26': 2.1, 'dic-26': 2.1 } },
+  { marca: 'SQUASH', meses: { 'ene-25': 2.7, 'feb-25': 2.5, 'mar-25': 2.4, 'abr-25': 2.1, 'may-25': 2.5, 'jun-25': 2.3, 'jul-25': 2.4, 'ago-25': 2.7, 'sep-25': 2.8, 'oct-25': 2.4, 'nov-25': 2.3, 'dic-25': 2.2, 'ene-26': 2.1, 'feb-26': 2.2, 'mar-26': 2.1, 'abr-26': 2.0, 'may-26': 2.0, 'jun-26': 1.9, 'jul-26': 1.9, 'ago-26': 1.8, 'sep-26': 1.8, 'oct-26': 1.7, 'nov-26': 1.7, 'dic-26': 1.6 } },
+  { marca: 'GATORLIT', meses: { 'ene-25': null, 'feb-25': null, 'mar-25': null, 'abr-25': null, 'may-25': null, 'jun-25': null, 'jul-25': 0.0, 'ago-25': 0.8, 'sep-25': 1.9, 'oct-25': 2.5, 'nov-25': 2.5, 'dic-25': 2.6, 'ene-26': 2.4, 'feb-26': 2.3, 'mar-26': 2.4, 'abr-26': 2.4, 'may-26': 2.5, 'jun-26': 2.5, 'jul-26': 2.6, 'ago-26': 2.6, 'sep-26': 2.7, 'oct-26': 2.7, 'nov-26': 2.8, 'dic-26': 2.8 } },
+  { marca: 'SOLHIDREX', meses: { 'ene-25': 1.6, 'feb-25': 1.9, 'mar-25': 1.9, 'abr-25': 1.8, 'may-25': 1.6, 'jun-25': 1.6, 'jul-25': 1.6, 'ago-25': 1.8, 'sep-25': 1.8, 'oct-25': 1.8, 'nov-25': 1.8, 'dic-25': 1.7, 'ene-26': 1.6, 'feb-26': 1.7, 'mar-26': 1.6, 'abr-26': 1.6, 'may-26': 1.5, 'jun-26': 1.5, 'jul-26': 1.4, 'ago-26': 1.4, 'sep-26': 1.3, 'oct-26': 1.3, 'nov-26': 1.2, 'dic-26': 1.2 } },
+  { marca: 'HIDRAPLUS', meses: { 'ene-25': 1.4, 'feb-25': 1.5, 'mar-25': 1.4, 'abr-25': 1.5, 'may-25': 1.6, 'jun-25': 1.7, 'jul-25': 1.6, 'ago-25': 1.4, 'sep-25': 1.4, 'oct-25': 1.3, 'nov-25': 1.3, 'dic-25': 1.3, 'ene-26': 1.2, 'feb-26': 1.3, 'mar-26': 1.2, 'abr-26': 1.2, 'may-26': 1.1, 'jun-26': 1.1, 'jul-26': 1.0, 'ago-26': 1.0, 'sep-26': 1.0, 'oct-26': 0.9, 'nov-26': 0.9, 'dic-26': 0.9 } },
+  { marca: 'SPORT MAS', meses: { 'ene-25': 1.2, 'feb-25': 1.5, 'mar-25': 1.6, 'abr-25': 1.8, 'may-25': 1.1, 'jun-25': 1.5, 'jul-25': 1.2, 'ago-25': 1.5, 'sep-25': 1.1, 'oct-25': 1.2, 'nov-25': 1.3, 'dic-25': 1.2, 'ene-26': 1.1, 'feb-26': 1.2, 'mar-26': 1.1, 'abr-26': 1.1, 'may-26': 1.0, 'jun-26': 1.0, 'jul-26': 0.9, 'ago-26': 0.9, 'sep-26': 0.8, 'oct-26': 0.8, 'nov-26': 0.7, 'dic-26': 0.7 } },
+  { marca: 'SUEROX', meses: { 'ene-25': 0.4, 'feb-25': 0.8, 'mar-25': 0.7, 'abr-25': 0.7, 'may-25': 0.8, 'jun-25': 0.7, 'jul-25': 0.9, 'ago-25': 0.8, 'sep-25': 0.8, 'oct-25': 0.6, 'nov-25': 0.7, 'dic-25': 0.7, 'ene-26': 0.6, 'feb-26': 0.6, 'mar-26': 0.6, 'abr-26': 0.6, 'may-26': 0.5, 'jun-26': 0.5, 'jul-26': 0.5, 'ago-26': 0.4, 'sep-26': 0.4, 'oct-26': 0.4, 'nov-26': 0.3, 'dic-26': 0.3 } }
+];
+
+const COLOMBIA_SOM_VALOR_MONTHLY = [
+  { marca: 'ELECTROLIT', meses: { 'ene-25': 41.4, 'feb-25': 38.7, 'mar-25': 38.2, 'abr-25': 37.6, 'may-25': 37.4, 'jun-25': 38.5, 'jul-25': 38.5, 'ago-25': 36.0, 'sep-25': 33.4, 'oct-25': 32.5, 'nov-25': 32.6, 'dic-25': 32.0, 'ene-26': 32.8, 'feb-26': 33.2, 'mar-26': 33.0, 'abr-26': 33.4, 'may-26': 33.7, 'jun-26': 34.0, 'jul-26': 34.3, 'ago-26': 34.6, 'sep-26': 35.0, 'oct-26': 35.3, 'nov-26': 35.6, 'dic-26': 36.0 } },
+  { marca: 'GATORADE', meses: { 'ene-25': 28.4, 'feb-25': 27.7, 'mar-25': 28.7, 'abr-25': 29.9, 'may-25': 29.8, 'jun-25': 28.7, 'jul-25': 29.5, 'ago-25': 28.9, 'sep-25': 28.7, 'oct-25': 28.7, 'nov-25': 29.1, 'dic-25': 30.0, 'ene-26': 30.5, 'feb-26': 29.8, 'mar-26': 30.2, 'abr-26': 30.1, 'may-26': 30.0, 'jun-26': 29.9, 'jul-26': 29.8, 'ago-26': 29.6, 'sep-26': 29.5, 'oct-26': 29.3, 'nov-26': 29.1, 'dic-26': 29.0 } },
+  { marca: 'PEDIALYTE', meses: { 'ene-25': 11.8, 'feb-25': 13.8, 'mar-25': 12.7, 'abr-25': 12.0, 'may-25': 12.2, 'jun-25': 12.5, 'jul-25': 11.7, 'ago-25': 11.2, 'sep-25': 10.8, 'oct-25': 11.3, 'nov-25': 10.9, 'dic-25': 10.5, 'ene-26': 10.1, 'feb-26': 10.4, 'mar-26': 10.3, 'abr-26': 10.2, 'may-26': 10.0, 'jun-26': 9.8, 'jul-26': 9.6, 'ago-26': 9.4, 'sep-26': 9.2, 'oct-26': 9.0, 'nov-26': 8.8, 'dic-26': 8.6 } },
+  { marca: 'HIDRALYTE', meses: { 'ene-25': null, 'feb-25': null, 'mar-25': null, 'abr-25': null, 'may-25': null, 'jun-25': null, 'jul-25': 0.3, 'ago-25': 3.0, 'sep-25': 5.5, 'oct-25': 6.4, 'nov-25': 6.1, 'dic-25': 6.5, 'ene-26': 6.8, 'feb-26': 6.6, 'mar-26': 6.9, 'abr-26': 7.1, 'may-26': 7.3, 'jun-26': 7.5, 'jul-26': 7.7, 'ago-26': 7.9, 'sep-26': 8.1, 'oct-26': 8.3, 'nov-26': 8.4, 'dic-26': 8.6 } },
+  { marca: 'SPORADE', meses: { 'ene-25': 3.7, 'feb-25': 3.7, 'mar-25': 4.1, 'abr-25': 4.1, 'may-25': 3.9, 'jun-25': 3.6, 'jul-25': 3.6, 'ago-25': 3.8, 'sep-25': 3.5, 'oct-25': 3.5, 'nov-25': 3.3, 'dic-25': 3.2, 'ene-26': 3.1, 'feb-26': 3.3, 'mar-26': 3.2, 'abr-26': 3.1, 'may-26': 3.0, 'jun-26': 2.9, 'jul-26': 2.8, 'ago-26': 2.7, 'sep-26': 2.6, 'oct-26': 2.5, 'nov-26': 2.4, 'dic-26': 2.3 } },
+  { marca: 'PL', meses: { 'ene-25': 2.8, 'feb-25': 3.1, 'mar-25': 3.4, 'abr-25': 3.5, 'may-25': 3.2, 'jun-25': 3.3, 'jul-25': 3.4, 'ago-25': 3.4, 'sep-25': 3.4, 'oct-25': 3.4, 'nov-25': 3.2, 'dic-25': 3.1, 'ene-26': 3.0, 'feb-26': 3.1, 'mar-26': 3.0, 'abr-26': 2.9, 'may-26': 2.8, 'jun-26': 2.7, 'jul-26': 2.6, 'ago-26': 2.5, 'sep-26': 2.4, 'oct-26': 2.3, 'nov-26': 2.2, 'dic-26': 2.1 } },
+  { marca: 'HIDRAPLUS', meses: { 'ene-25': 2.6, 'feb-25': 2.8, 'mar-25': 2.8, 'abr-25': 2.8, 'may-25': 2.9, 'jun-25': 3.1, 'jul-25': 3.1, 'ago-25': 2.8, 'sep-25': 2.8, 'oct-25': 2.6, 'nov-25': 2.8, 'dic-25': 2.7, 'ene-26': 2.5, 'feb-26': 2.6, 'mar-26': 2.5, 'abr-26': 2.4, 'may-26': 2.3, 'jun-26': 2.2, 'jul-26': 2.1, 'ago-26': 2.0, 'sep-26': 1.9, 'oct-26': 1.8, 'nov-26': 1.7, 'dic-26': 1.6 } },
+  { marca: 'POWERADE', meses: { 'ene-25': 2.2, 'feb-25': 2.3, 'mar-25': 2.3, 'abr-25': 2.5, 'may-25': 2.3, 'jun-25': 2.2, 'jul-25': 2.1, 'ago-25': 2.2, 'sep-25': 2.2, 'oct-25': 2.0, 'nov-25': 2.0, 'dic-25': 2.1, 'ene-26': 2.0, 'feb-26': 1.9, 'mar-26': 2.0, 'abr-26': 1.9, 'may-26': 1.8, 'jun-26': 1.7, 'jul-26': 1.6, 'ago-26': 1.5, 'sep-26': 1.4, 'oct-26': 1.3, 'nov-26': 1.2, 'dic-26': 1.1 } },
+  { marca: 'GATORLIT', meses: { 'ene-25': null, 'feb-25': null, 'mar-25': null, 'abr-25': null, 'may-25': null, 'jun-25': null, 'jul-25': 0.0, 'ago-25': 0.8, 'sep-25': 1.9, 'oct-25': 2.5, 'nov-25': 2.6, 'dic-25': 2.7, 'ene-26': 2.5, 'feb-26': 2.4, 'mar-26': 2.5, 'abr-26': 2.6, 'may-26': 2.7, 'jun-26': 2.8, 'jul-26': 2.9, 'ago-26': 3.0, 'sep-26': 3.1, 'oct-26': 3.2, 'nov-26': 3.3, 'dic-26': 3.4 } },
+  { marca: 'SQUASH', meses: { 'ene-25': 1.4, 'feb-25': 1.3, 'mar-25': 1.3, 'abr-25': 1.2, 'may-25': 1.3, 'jun-25': 1.3, 'jul-25': 1.3, 'ago-25': 1.5, 'sep-25': 1.6, 'oct-25': 1.4, 'nov-25': 1.3, 'dic-25': 1.2, 'ene-26': 1.1, 'feb-26': 1.2, 'mar-26': 1.1, 'abr-26': 1.0, 'may-26': 1.0, 'jun-26': 0.9, 'jul-26': 0.9, 'ago-26': 0.8, 'sep-26': 0.8, 'oct-26': 0.7, 'nov-26': 0.7, 'dic-26': 0.6 } },
+  { marca: 'SOLHIDREX', meses: { 'ene-25': 0.9, 'feb-25': 1.2, 'mar-25': 1.2, 'abr-25': 1.1, 'may-25': 1.2, 'jun-25': 1.1, 'jul-25': 1.1, 'ago-25': 1.1, 'sep-25': 1.3, 'oct-25': 1.2, 'nov-25': 1.2, 'dic-25': 1.1, 'ene-26': 1.0, 'feb-26': 1.1, 'mar-26': 1.0, 'abr-26': 1.0, 'may-26': 0.9, 'jun-26': 0.9, 'jul-26': 0.8, 'ago-26': 0.8, 'sep-26': 0.7, 'oct-26': 0.7, 'nov-26': 0.6, 'dic-26': 0.6 } },
+  { marca: 'SUEROX', meses: { 'ene-25': 0.7, 'feb-25': 1.2, 'mar-25': 1.2, 'abr-25': 1.2, 'may-25': 1.3, 'jun-25': 1.1, 'jul-25': 1.4, 'ago-25': 1.3, 'sep-25': 1.3, 'oct-25': 1.0, 'nov-25': 1.0, 'dic-25': 1.0, 'ene-26': 0.9, 'feb-26': 0.9, 'mar-26': 0.9, 'abr-26': 0.8, 'may-26': 0.8, 'jun-26': 0.7, 'jul-26': 0.7, 'ago-26': 0.6, 'sep-26': 0.6, 'oct-26': 0.5, 'nov-26': 0.5, 'dic-26': 0.4 } },
+  { marca: 'HIDRASOL', meses: { 'ene-25': 0.9, 'feb-25': 1.0, 'mar-25': 0.9, 'abr-25': 0.9, 'may-25': 1.0, 'jun-25': 0.9, 'jul-25': 0.8, 'ago-25': 0.9, 'sep-25': 0.9, 'oct-25': 1.0, 'nov-25': 0.8, 'dic-25': 0.8, 'ene-26': 0.7, 'feb-26': 0.8, 'mar-26': 0.7, 'abr-26': 0.7, 'may-26': 0.6, 'jun-26': 0.6, 'jul-26': 0.5, 'ago-26': 0.5, 'sep-26': 0.4, 'oct-26': 0.4, 'nov-26': 0.3, 'dic-26': 0.3 } }
+];
+
+// ==========================================
+// ENDPOINTS ANALÍTICOS NIELSEN COLOMBIA
+// ==========================================
+app.get('/api/nielsen/co/overview-dashboard', async (req, res) => {
+  let livePayload = null;
+  try {
+    const liveFile = path.join(__dirname, 'live_dashboard_payload.json');
+    if (fs.existsSync(liveFile)) {
+      livePayload = JSON.parse(fs.readFileSync(liveFile, 'utf8'));
+    }
+  } catch (e) {
+    console.warn('Error reading live payload Colombia:', e.message);
+  }
+
+  const payload = {
+    pais: 'Colombia',
+    marcaPropia: 'Electrolit',
+    availableYears: [2026, 2025],
+    aperturasCanalRegion: COLOMBIA_APERTURAS_CANAL_REGION,
+    canalesDisponibles: COLOMBIA_CANALES_DISPONIBLES,
+    categoriasProducto: COLOMBIA_CATEGORIAS_PRODUCTO,
+    monthlyData: (livePayload && livePayload.monthlyData) ? livePayload.monthlyData : COLOMBIA_MONTHLY_DETAIL_DAX,
+    somUnidades: (livePayload && livePayload.somUnidades) ? livePayload.somUnidades : COLOMBIA_SOM_UNIDADES_MONTHLY,
+    somValor: (livePayload && livePayload.somValor) ? livePayload.somValor : COLOMBIA_SOM_VALOR_MONTHLY,
+    lastUpdated: (livePayload && livePayload.lastUpdated) ? livePayload.lastUpdated : new Date().toISOString()
+  };
+
+  return res.json(payload);
+});
+
+app.get('/api/nielsen/co/brand-channels', async (req, res) => {
+  try {
+    const bcFile = path.join(__dirname, 'live_brand_channels_payload.json');
+    if (fs.existsSync(bcFile)) {
+      const data = JSON.parse(fs.readFileSync(bcFile, 'utf8'));
+      return res.json(data);
+    }
+  } catch (e) {
+    console.warn('Error reading brand channels payload Colombia:', e.message);
+  }
+  return res.json({ error: 'No snapshot available' });
+});
+
+app.get('/api/colombia/brand-channels', async (req, res) => {
+  try {
+    const bcFile = path.join(__dirname, 'live_brand_channels_payload.json');
+    if (fs.existsSync(bcFile)) {
+      const data = JSON.parse(fs.readFileSync(bcFile, 'utf8'));
+      return res.json(data);
+    }
+  } catch (e) {
+    console.warn('Error reading brand channels payload Colombia:', e.message);
+  }
+  return res.json({ error: 'No snapshot available' });
+});
+
+// ==========================================
+// PROCESO RESILIENTE Y MANEJO DE ERRORES
+// ==========================================
+process.on('uncaughtException', (err) => {
+  console.error('🚨 [UNCAUGHT EXCEPTION]:', err);
+});
+
+process.on('unhandledRejection', (reason, promise) => {
+  console.error('🚨 [UNHANDLED REJECTION]:', reason);
+});
+
 // ==========================================
 // VITE MIDDLEWARE (MODO INTEGRADO)
 // ==========================================
 async function startServer() {
-  if (!isProd) {
-    const vite = await createViteServer({
-      server: { middlewareMode: true },
-      appType: 'spa'
-    });
-    app.use(vite.middlewares);
-  } else {
-    app.use(express.static(path.resolve(__dirname, 'dist')));
-    app.get('*', (req, res) => {
-      res.sendFile(path.resolve(__dirname, 'dist', 'index.html'));
-    });
-  }
+  try {
+    if (!isProd) {
+      const vite = await createViteServer({
+        server: { middlewareMode: true },
+        appType: 'spa'
+      });
+      app.use(vite.middlewares);
+    } else {
+      app.use(express.static(path.resolve(__dirname, 'dist')));
+      app.get('*', (req, res) => {
+        res.sendFile(path.resolve(__dirname, 'dist', 'index.html'));
+      });
+    }
 
-  const PORT = process.env.PORT || 3000;
-  app.listen(PORT, '0.0.0.0', () => {
-    console.log(`\n🚀 [HADA DASHBOARD] Servidor activo en http://localhost:${PORT}`);
-    console.log(`🇨🇷 Dashboard Nielsen Costa Rica & Portada listo.`);
-  });
+    const PORT = process.env.PORT || 3000;
+    const server = app.listen(PORT, '0.0.0.0', () => {
+      console.log(`\n🚀 [HADA DASHBOARD] Servidor activo en http://localhost:${PORT}`);
+      console.log(`🇨🇷 Dashboard Nielsen Costa Rica & Portada listo.`);
+    });
+
+    server.on('error', (err) => {
+      if (err.code === 'EADDRINUSE') {
+        console.warn(`⚠️ Puerto ${PORT} en uso, esperando liberación...`);
+      } else {
+        console.error('Error en el servidor HTTP:', err);
+      }
+    });
+  } catch (err) {
+    console.error('Error al iniciar el servidor:', err);
+  }
 }
 
 startServer();
