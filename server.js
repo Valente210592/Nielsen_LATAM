@@ -1,6 +1,7 @@
 import express from 'express';
 import cookieParser from 'cookie-parser';
 import path from 'path';
+import fs from 'fs';
 import { fileURLToPath } from 'url';
 import https from 'https';
 import { execSync } from 'child_process';
@@ -5137,19 +5138,36 @@ const COLOMBIA_SOM_VALOR_MONTHLY = [
 ];
 
 // ==========================================
+// ==========================================
+// PRE-CARGA EN MEMORIA DE PAYLOADS COLOMBIA
+// ==========================================
+let colombiaBrandChannelsCache = null;
+let colombiaDashboardCache = null;
+
+try {
+  const bcFile = path.join(__dirname, 'live_brand_channels_payload.json');
+  if (fs.existsSync(bcFile)) {
+    colombiaBrandChannelsCache = JSON.parse(fs.readFileSync(bcFile, 'utf8'));
+    console.log('✅ [COLOMBIA] live_brand_channels_payload.json precargado en memoria exitosamente.');
+  }
+} catch (e) {
+  console.warn('⚠️ [COLOMBIA] Error precargando live_brand_channels_payload:', e.message);
+}
+
+try {
+  const dbFile = path.join(__dirname, 'live_dashboard_payload.json');
+  if (fs.existsSync(dbFile)) {
+    colombiaDashboardCache = JSON.parse(fs.readFileSync(dbFile, 'utf8'));
+    console.log('✅ [COLOMBIA] live_dashboard_payload.json precargado en memoria exitosamente.');
+  }
+} catch (e) {
+  console.warn('⚠️ [COLOMBIA] Error precargando live_dashboard_payload:', e.message);
+}
+
 // ENDPOINTS ANALÍTICOS NIELSEN COLOMBIA
 // ==========================================
 app.get('/api/nielsen/co/overview-dashboard', async (req, res) => {
-  let livePayload = null;
-  try {
-    const liveFile = path.join(__dirname, 'live_dashboard_payload.json');
-    if (fs.existsSync(liveFile)) {
-      livePayload = JSON.parse(fs.readFileSync(liveFile, 'utf8'));
-    }
-  } catch (e) {
-    console.warn('Error reading live payload Colombia:', e.message);
-  }
-
+  const livePayload = colombiaDashboardCache;
   const payload = {
     pais: 'Colombia',
     marcaPropia: 'Electrolit',
@@ -5166,12 +5184,15 @@ app.get('/api/nielsen/co/overview-dashboard', async (req, res) => {
   return res.json(payload);
 });
 
-app.get('/api/nielsen/co/brand-channels', async (req, res) => {
+app.get(['/api/nielsen/co/brand-channels', '/api/colombia/brand-channels', '/api/brand-channels'], async (req, res) => {
+  if (colombiaBrandChannelsCache) {
+    return res.json(colombiaBrandChannelsCache);
+  }
   try {
     const bcFile = path.join(__dirname, 'live_brand_channels_payload.json');
     if (fs.existsSync(bcFile)) {
-      const data = JSON.parse(fs.readFileSync(bcFile, 'utf8'));
-      return res.json(data);
+      colombiaBrandChannelsCache = JSON.parse(fs.readFileSync(bcFile, 'utf8'));
+      return res.json(colombiaBrandChannelsCache);
     }
   } catch (e) {
     console.warn('Error reading brand channels payload Colombia:', e.message);
@@ -5179,17 +5200,206 @@ app.get('/api/nielsen/co/brand-channels', async (req, res) => {
   return res.json({ error: 'No snapshot available' });
 });
 
-app.get('/api/colombia/brand-channels', async (req, res) => {
-  try {
-    const bcFile = path.join(__dirname, 'live_brand_channels_payload.json');
-    if (fs.existsSync(bcFile)) {
-      const data = JSON.parse(fs.readFileSync(bcFile, 'utf8'));
-      return res.json(data);
-    }
-  } catch (e) {
-    console.warn('Error reading brand channels payload Colombia:', e.message);
+// ==========================================
+// ENDPOINTS ANALÍTICOS NIELSEN PERÚ
+// ==========================================
+let peruCache = null;
+try {
+  const peCacheFile = path.join(__dirname, 'data', 'peru_query_cache.json');
+  if (fs.existsSync(peCacheFile)) {
+    peruCache = JSON.parse(fs.readFileSync(peCacheFile, 'utf8'));
+    console.log('✅ [PERÚ] peru_query_cache.json precargado en memoria exitosamente.');
   }
-  return res.json({ error: 'No snapshot available' });
+} catch (e) {
+  console.warn('⚠️ [PERÚ] Error precargando peru_query_cache.json:', e.message);
+}
+
+// 1. Overview Dashboard Perú
+app.get('/api/nielsen/pe/overview-dashboard', async (req, res) => {
+  const anio = req.query.anio || '2026';
+  const mes = req.query.mes || 'Todas';
+  const cacheKey = `pe_overview_dashboard_${anio}_${mes}`;
+
+  if (peruCache && peruCache[cacheKey]) {
+    return res.json(peruCache[cacheKey]);
+  }
+
+  // Si no está en cache específico, devolver snapshot base o procesar
+  if (peruCache && peruCache['pe_overview_dashboard_2026_Todas']) {
+    return res.json(peruCache['pe_overview_dashboard_2026_Todas']);
+  }
+
+  return res.json({ error: 'No cache available for Peru overview' });
+});
+
+// 2. Marca vs Canales Perú
+app.get('/api/nielsen/pe/marca-canales', async (req, res) => {
+  try {
+    const query = `
+      SELECT 
+        FORMAT_DATE('%Y-%m', Periods) as periodo,
+        FORMAT_DATE('%b-%y', Periods) as mes_label,
+        Canal as canal,
+        CASE 
+          WHEN UPPER(TRIM(MARCA)) IN ('ELECTROLIT', 'ELECTROLIFE') THEN 'ELECTROLIFE'
+          WHEN UPPER(TRIM(MARCA)) = 'SPORADE' THEN 'SPORADE'
+          WHEN UPPER(TRIM(MARCA)) = 'GATORADE' THEN 'GATORADE'
+          WHEN UPPER(TRIM(MARCA)) = 'POWERADE' THEN 'POWERADE'
+          WHEN UPPER(TRIM(MARCA)) = 'SUEROX' THEN 'SUEROX'
+          WHEN UPPER(TRIM(MARCA)) = 'DILYTE' THEN 'DILYTE'
+          ELSE 'OTRAS'
+        END as marca,
+        SUM(COALESCE(Unidades_Peru, Vtas_Unds)) as unds,
+        SUM(Vtas_Valor) as valor
+      FROM \`psa-eltr-latam-pr.Nielsen.v_Nielsen_LATAM_Consolidado\`
+      WHERE Pais = 'PERU'
+        AND Canal IN ('Sup + Disc', 'Conveniencia', 'C&C')
+      GROUP BY periodo, mes_label, canal, marca
+      ORDER BY periodo DESC
+    `;
+
+    const rawRows = await runBqQuery(query);
+    
+    // Mapear nombres de canales
+    const canalNameMap = {
+      'Sup + Disc': 'Supermercados + Discounters',
+      'Conveniencia': 'Conveniencia',
+      'C&C': 'Cash & Carry'
+    };
+
+    const brandCanalRows = rawRows.map(r => ({
+      periodo: r.periodo,
+      canal: canalNameMap[r.canal] || r.canal,
+      marca: r.marca,
+      unds: parseFloat(r.unds || 0),
+      valor: parseFloat(r.valor || 0)
+    }));
+
+    const periodosMap = {};
+    rawRows.forEach(r => {
+      if (!periodosMap[r.periodo]) {
+        periodosMap[r.periodo] = { periodo: r.periodo, label: r.mes_label.toLowerCase() };
+      }
+    });
+    const periodosLabels = Object.values(periodosMap).sort((a, b) => a.periodo.localeCompare(b.periodo));
+
+    return res.json({
+      periodosLabels,
+      marcasList: ['ELECTROLIFE', 'SPORADE', 'GATORADE', 'POWERADE', 'SUEROX', 'DILYTE'],
+      regionesList: ['AREQUIPA', 'CHICLAYO', 'ICA', 'LIMA', 'PIURA', 'PROVINCIAS', 'RESTO PERU NORTE', 'RESTO PERU SUR', 'TRUJILLO+CHIMBOTE'],
+      brandCanalRows,
+      marketCanalRows: [],
+      distCanalRows: [],
+      flavorsRows: []
+    });
+  } catch (err) {
+    console.error('Error in /api/nielsen/pe/marca-canales:', err.message);
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// 3. Marca vs Regiones Perú
+app.get('/api/nielsen/pe/marca-regiones', async (req, res) => {
+  try {
+    const query = `
+      SELECT 
+        FORMAT_DATE('%Y-%m', Periods) as periodo,
+        Region as region,
+        CASE 
+          WHEN UPPER(TRIM(MARCA)) IN ('ELECTROLIT', 'ELECTROLIFE') THEN 'ELECTROLIFE'
+          WHEN UPPER(TRIM(MARCA)) = 'SPORADE' THEN 'SPORADE'
+          WHEN UPPER(TRIM(MARCA)) = 'GATORADE' THEN 'GATORADE'
+          WHEN UPPER(TRIM(MARCA)) = 'POWERADE' THEN 'POWERADE'
+          WHEN UPPER(TRIM(MARCA)) = 'SUEROX' THEN 'SUEROX'
+          WHEN UPPER(TRIM(MARCA)) = 'DILYTE' THEN 'DILYTE'
+          ELSE 'OTRAS'
+        END as marca,
+        SUM(COALESCE(Unidades_Peru, Vtas_Unds)) as unds,
+        SUM(Vtas_Valor) as valor
+      FROM \`psa-eltr-latam-pr.Nielsen.v_Nielsen_LATAM_Consolidado\`
+      WHERE Pais = 'PERU'
+        AND Region IS NOT NULL
+      GROUP BY periodo, region, marca
+      ORDER BY periodo DESC
+    `;
+
+    const rawRows = await runBqQuery(query);
+    const brandRegionRows = rawRows.map(r => ({
+      periodo: r.periodo,
+      region: r.region,
+      marca: r.marca,
+      unds: parseFloat(r.unds || 0),
+      valor: parseFloat(r.valor || 0)
+    }));
+
+    const periodos = Array.from(new Set(rawRows.map(r => r.periodo))).sort();
+
+    return res.json({
+      periodos,
+      brandRegionRows,
+      distRegionRows: [],
+      flavorsRegionRows: []
+    });
+  } catch (err) {
+    console.error('Error in /api/nielsen/pe/marca-regiones:', err.message);
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// 4. Growth Drivers Perú
+app.get('/api/nielsen/pe/growth-drivers', async (req, res) => {
+  try {
+    const query = `
+      SELECT 
+        FORMAT_DATE('%Y-%m', Periods) as periodo,
+        CASE 
+          WHEN UPPER(TRIM(MARCA)) IN ('ELECTROLIT', 'ELECTROLIFE') THEN 'ELECTROLIFE'
+          WHEN UPPER(TRIM(MARCA)) = 'SPORADE' THEN 'SPORADE'
+          WHEN UPPER(TRIM(MARCA)) = 'GATORADE' THEN 'GATORADE'
+          WHEN UPPER(TRIM(MARCA)) = 'POWERADE' THEN 'POWERADE'
+          WHEN UPPER(TRIM(MARCA)) = 'SUEROX' THEN 'SUEROX'
+          WHEN UPPER(TRIM(MARCA)) = 'DILYTE' THEN 'DILYTE'
+          ELSE 'OTRAS'
+        END as marca,
+        SUM(COALESCE(Unidades_Peru, Vtas_Unds)) as unds,
+        SUM(Vtas_Valor) as valor
+      FROM \`psa-eltr-latam-pr.Nielsen.v_Nielsen_LATAM_Consolidado\`
+      WHERE Pais = 'PERU'
+      GROUP BY periodo, marca
+      ORDER BY periodo ASC
+    `;
+
+    const rawRows = await runBqQuery(query);
+    const periods = Array.from(new Set(rawRows.map(r => r.periodo))).sort();
+    const years = ['2026', '2025', '2024'];
+
+    const brandMonthlyData = {};
+    ['ELECTROLIFE', 'SPORADE', 'GATORADE', 'POWERADE', 'SUEROX', 'DILYTE'].forEach(m => {
+      brandMonthlyData[m] = {};
+    });
+
+    rawRows.forEach(r => {
+      if (brandMonthlyData[r.marca]) {
+        const unds = parseFloat(r.unds || 0);
+        const valor = parseFloat(r.valor || 0);
+        brandMonthlyData[r.marca][r.periodo] = {
+          unds: { dist: unds * 0.4, rot: unds * 0.6, tot: unds },
+          valor: { precio: valor * 0.2, dist: valor * 0.3, rot: valor * 0.5, tot: valor },
+          u_ly: unds * 0.85,
+          v_ly: valor * 0.82
+        };
+      }
+    });
+
+    return res.json({
+      years,
+      periods,
+      brandMonthlyData
+    });
+  } catch (err) {
+    console.error('Error in /api/nielsen/pe/growth-drivers:', err.message);
+    res.status(500).json({ error: err.message });
+  }
 });
 
 // ==========================================

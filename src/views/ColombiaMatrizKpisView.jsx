@@ -444,11 +444,11 @@ const ColombiaMatrizKpisView = ({ onBackToPortada }) => {
       });
     });
 
-    // 4. Fila TOTAL Mercado (DAX: Apertura Canal/Region = "Total" / Apertura Canal/Region <> "Canal/Region/Drog")
-    const totalNativeRows = filteredBrandRows.filter(r => r.apertura === 'Total' || r.canal === 'Total');
-    const convRows = totalNativeRows.length > 0 
-      ? totalNativeRows 
-      : filteredBrandRows.filter(r => r.canal !== 'Droguerias Cadena' && r.canal !== 'Droguerias Independientes' && r.canal !== 'Consumo Local');
+    // 4. Fila TOTAL Mercado (Consolidado oficial de los 4 canales: Droguerías, Super Cadena, Superetes, Tradicional)
+    const convRows = filteredBrandRows.filter(
+      r => ['Droguerias', 'Super Cadena', 'Superetes', 'Tradicional'].includes(r.canal) &&
+           (r.apertura === 'Canal' || selectedRegion !== 'TOTAL')
+    );
 
     const totalAllUnds = convRows.reduce((a, r) => a + (r.unds_k || 0), 0);
     const totalAllVal = convRows.reduce((a, r) => a + (r.val_m || 0), 0);
@@ -462,11 +462,13 @@ const ColombiaMatrizKpisView = ({ onBackToPortada }) => {
       shareVal['Total'][b.id] = totalAllVal > 0 && sumAllVal > 0 ? (sumAllVal / totalAllVal) * 100 : null;
       precio['Total'][b.id] = sumAllUnds > 0 ? (sumAllVal * 1000000) / (sumAllUnds * 1000) : null;
 
-      // Rotación Total Diaria: DAX AVERAGEX(Months, SUM(Vtas Unds Conv) / (SUM(Tiendas Venden Conv) * Días Mes))
+      // Rotación Total Diaria: Promedio mensual con universo auditado Total
       const monthlyTotalRotations = [];
+      const totalCanalRows = filteredBrandRows.filter(r => r.canal === 'Total' && r.marca === b.id);
+      const rowsForRotTotal = totalCanalRows.length > 0 ? totalCanalRows : bAllRows;
 
       selectedMonths.forEach(mNum => {
-        const mRows = bAllRows.filter(r => r.mesNum === mNum);
+        const mRows = rowsForRotTotal.filter(r => r.mesNum === mNum);
         const mUnds = mRows.reduce((a, r) => a + (r.unds_k || 0) * 1000, 0);
         const mVenden = mRows.reduce((a, r) => a + (r.tiendas_venden || 0), 0);
         const days = new Date(selectedYear, mNum, 0).getDate();
@@ -479,25 +481,20 @@ const ColombiaMatrizKpisView = ({ onBackToPortada }) => {
         ? monthlyTotalRotations.reduce((a, v) => a + v, 0) / monthlyTotalRotations.length 
         : null;
 
-      // Dist.Num Total: MAXX mensual de sum(N. de Tiendas Venden (C)) / sum(N. de Tiendas (C)) * 100
-      const totalDistConvRows = filteredBrandRows.filter(
-        r => r.marca === b.id &&
-             r.canal !== 'Droguerias Cadena' &&
-             r.canal !== 'Droguerias Independientes' &&
-             r.canal !== 'Consumo Local' &&
-             r.apertura === 'Canal'
-      );
-      const monthlyTotalDistNums = [];
+      // Dist. Num Total: Máximo mensual de distribución nacional auditada
+      const monthlyTotalDist = [];
       selectedMonths.forEach(mNum => {
-        const mRows = totalDistConvRows.filter(r => r.mesNum === mNum);
+        const mRows = rowsForRotTotal.filter(r => r.mesNum === mNum);
         const sumV = mRows.reduce((a, r) => a + (r.tiendas_venden || 0), 0);
         const sumC = mRows.reduce((a, r) => a + (r.tiendas_c || 0), 0);
-        if (sumC > 0 && sumV > 0) {
-          monthlyTotalDistNums.push((sumV / sumC) * 100);
+        if (sumC > 0) {
+          monthlyTotalDist.push((sumV / sumC) * 100);
+        } else {
+          const dVal = mRows.find(r => r.dist_num > 0)?.dist_num;
+          if (dVal) monthlyTotalDist.push(dVal);
         }
       });
-
-      distNum['Total'][b.id] = monthlyTotalDistNums.length > 0 ? Math.max(...monthlyTotalDistNums) : null;
+      distNum['Total'][b.id] = monthlyTotalDist.length > 0 ? Math.max(...monthlyTotalDist) : null;
     });
 
     // 5. MATRIZ 6: CONTEO DE SABORES ACTIVOS (DAX: DISTINCTCOUNT(SABOR) WHERE Vtas Unds > 0)

@@ -222,31 +222,25 @@ export const MONTH_NAMES_SHORT = [
   'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic'
 ];
 
-// Generador de ventana histórica completa (2025 hasta corte 2026)
-export function getCompleteHistoricalMonths(targetYear, targetMonthNum) {
+const SPANISH_MONTH_SHORT = ['', 'ene', 'feb', 'mar', 'abr', 'may', 'jun', 'jul', 'ago', 'sep', 'oct', 'nov', 'dic'];
+
+// Generador de ventana estándar de 13 meses rolling (ej. ago-25 a ago-26)
+export function getRolling13Months(endYear, endMonthNum) {
   const result = [];
-  if (targetYear === 2026) {
-    for (let m = 1; m <= 12; m++) {
-      const mName = MONTH_NAMES_SHORT[m - 1]?.toLowerCase() || 'mes';
-      result.push({ anio: 2025, mesNum: m, mesCode: `${mName}-25` });
-    }
-    for (let m = 1; m <= targetMonthNum; m++) {
-      const mName = MONTH_NAMES_SHORT[m - 1]?.toLowerCase() || 'mes';
-      result.push({ anio: 2026, mesNum: m, mesCode: `${mName}-26` });
-    }
-  } else if (targetYear === 2025) {
-    for (let m = 1; m <= 12; m++) {
-      const mName = MONTH_NAMES_SHORT[m - 1]?.toLowerCase() || 'mes';
-      result.push({ anio: 2024, mesNum: m, mesCode: `${mName}-24` });
-    }
-    for (let m = 1; m <= targetMonthNum; m++) {
-      const mName = MONTH_NAMES_SHORT[m - 1]?.toLowerCase() || 'mes';
-      result.push({ anio: 2025, mesNum: m, mesCode: `${mName}-25` });
-    }
-  } else {
-    for (let m = 1; m <= targetMonthNum; m++) {
-      const mName = MONTH_NAMES_SHORT[m - 1]?.toLowerCase() || 'mes';
-      result.push({ anio: targetYear, mesNum: m, mesCode: `${mName}-${String(targetYear).slice(-2)}` });
+  let curY = endYear;
+  let curM = endMonthNum;
+  for (let i = 0; i < 13; i++) {
+    const yrSuffix = String(curY).slice(-2);
+    const mStr = SPANISH_MONTH_SHORT[curM];
+    result.unshift({
+      anio: curY,
+      mesNum: curM,
+      mesCode: `${mStr}-${yrSuffix}`
+    });
+    curM--;
+    if (curM === 0) {
+      curM = 12;
+      curY--;
     }
   }
   return result;
@@ -693,10 +687,26 @@ const BrandPowerBiLineChart = ({ data, metricPrefix, type = 'pct', minVal = null
           );
         })}
 
-        {/* Capa de etiquetas numéricas con algoritmo anti-colisión bi-direccional */}
+        {/* Capa de etiquetas numéricas con algoritmo alternado inteligente ("uno sí uno no") y color por marca */}
         <g className="data-labels-layer">
           {data.map((d, colIdx) => {
             const x = getX(colIdx);
+            const isFirstOrLastMonth = colIdx === 0 || colIdx === data.length - 1;
+            const isEvenMonth = colIdx % 2 === 0;
+
+            const brandPhases = {
+              'ELECTROLIT': 0,
+              'POWERADE': 0,
+              'SUEROX': 0,
+              'SQUASH': 0,
+              'ELECTROLIFE': 1,
+              'GATORADE': 1,
+              'PEDIALYTE': 1,
+              'SPORADE': 1,
+              'PL': 1,
+              'HIDRALYTE': 1
+            };
+
             const colPoints = [];
 
             activeBrands.forEach(brand => {
@@ -704,13 +714,18 @@ const BrandPowerBiLineChart = ({ data, metricPrefix, type = 'pct', minVal = null
               if (typeof val === 'number' && !isNaN(val) && val !== null && val > 0) {
                 const y = getY(val);
                 if (y !== null) {
-                  colPoints.push({
-                    brand,
-                    val,
-                    y,
-                    color: BRAND_CONFIG[brand]?.color || '#64748B',
-                    labelText: formatValue(val)
-                  });
+                  const phase = brandPhases[brand] !== undefined ? brandPhases[brand] : 0;
+                  const shouldShow = isFirstOrLastMonth || (phase === 0 && isEvenMonth) || (phase === 1 && !isEvenMonth);
+
+                  if (shouldShow) {
+                    colPoints.push({
+                      brand,
+                      val,
+                      y,
+                      color: BRAND_CONFIG[brand]?.color || '#00529B',
+                      labelText: formatValue(val)
+                    });
+                  }
                 }
               }
             });
@@ -720,13 +735,13 @@ const BrandPowerBiLineChart = ({ data, metricPrefix, type = 'pct', minVal = null
             // Ordenar de arriba a abajo por posición Y
             colPoints.sort((a, b) => a.y - b.y);
 
-            // Algoritmo anti-colisión vertical bi-direccional
-            const minGap = 10.0;
+            // Algoritmo anti-colisión vertical
+            const minGap = 12.0;
             const placed = [];
 
             // Forward pass (top to bottom)
             colPoints.forEach((pt) => {
-              let targetY = pt.y - 7;
+              let targetY = pt.y - 8;
               if (placed.length > 0) {
                 const prev = placed[placed.length - 1];
                 if (targetY < prev.labelY + minGap) {
@@ -753,20 +768,35 @@ const BrandPowerBiLineChart = ({ data, metricPrefix, type = 'pct', minVal = null
             });
 
             return placed.map((pt) => (
-              <text
-                key={`lbl-${pt.brand}-${colIdx}`}
-                x={x}
-                y={pt.labelY}
-                textAnchor="middle"
-                dominantBaseline="middle"
-                fill="#334155"
-                fontSize="7.2"
-                fontWeight="700"
-                fontFamily="system-ui, -apple-system, sans-serif"
-                className="pointer-events-none select-none drop-shadow-2xs"
-              >
-                {pt.labelText}
-              </text>
+              <g key={`lbl-${pt.brand}-${colIdx}`} className="pointer-events-none select-none">
+                <text
+                  x={x}
+                  y={pt.labelY}
+                  textAnchor="middle"
+                  dominantBaseline="middle"
+                  fill="#ffffff"
+                  stroke="#ffffff"
+                  strokeWidth="2.5"
+                  strokeLinejoin="round"
+                  fontSize="7.5"
+                  fontWeight="800"
+                  fontFamily="system-ui, -apple-system, sans-serif"
+                >
+                  {pt.labelText}
+                </text>
+                <text
+                  x={x}
+                  y={pt.labelY}
+                  textAnchor="middle"
+                  dominantBaseline="middle"
+                  fill={pt.color}
+                  fontSize="7.5"
+                  fontWeight="800"
+                  fontFamily="system-ui, -apple-system, sans-serif"
+                >
+                  {pt.labelText}
+                </text>
+              </g>
             ));
           })}
         </g>
@@ -955,9 +985,9 @@ const ColombiaCanalesMarcaView = ({ onBackToPortada }) => {
     }
   };
 
-  // Ventana histórica completa (desde 2025 hasta corte actual)
-  const historicalMonthWindow = useMemo(() => {
-    return getCompleteHistoricalMonths(selectedYear, targetEndMonthNum);
+  // Ventana de 13 meses rolling (ej. ago-25 a ago-26)
+  const rolling13MonthWindow = useMemo(() => {
+    return getRolling13Months(selectedYear, targetEndMonthNum);
   }, [selectedYear, targetEndMonthNum]);
 
   // Lista de marcas disponibles ordenadas alfabéticamente
@@ -978,13 +1008,14 @@ const ColombiaCanalesMarcaView = ({ onBackToPortada }) => {
     if (!data?.nationalChannelBrandRows) return { mix: [], series: [] };
 
     const isTotalCanal = selectedCanal === 'Total' || selectedCanal === 'TOTAL';
+    const BASE_CHANNELS = ['Droguerias', 'Super Cadena', 'Superetes', 'Tradicional'];
 
     // 1. Mix Total Nacional vs Canal Seleccionado Nacional
     const natYearRows = data.nationalChannelBrandRows.filter(
       r => r.anio === selectedYear && selectedMonths.includes(r.mesNum)
     );
 
-    // Total Mercado Nacional (todas las marcas y canales)
+    // Total Mercado Nacional (todas las marcas en canal = 'Total' o suma de 4 canales base)
     let totalNatUnds = 0;
     const totalBrandUnds = {};
 
@@ -992,11 +1023,34 @@ const ColombiaCanalesMarcaView = ({ onBackToPortada }) => {
     let canalNatUnds = 0;
     const canalBrandUnds = {};
 
+    const hasCanalTotalRows = natYearRows.some(r => r.canal === 'Total' && (r.unds_k || 0) > 0);
+
     natYearRows.forEach(r => {
       const bUnds = r.unds_k || 0;
-      totalNatUnds += bUnds;
-      totalBrandUnds[r.marca] = (totalBrandUnds[r.marca] || 0) + bUnds;
-      if (isTotalCanal || r.canal === selectedCanal) {
+      
+      // Total Mercado Nacional (sin duplicar canales secundarios)
+      if (hasCanalTotalRows) {
+        if (r.canal === 'Total') {
+          totalNatUnds += bUnds;
+          totalBrandUnds[r.marca] = (totalBrandUnds[r.marca] || 0) + bUnds;
+        }
+      } else if (BASE_CHANNELS.includes(r.canal)) {
+        totalNatUnds += bUnds;
+        totalBrandUnds[r.marca] = (totalBrandUnds[r.marca] || 0) + bUnds;
+      }
+
+      // Canal Seleccionado
+      if (isTotalCanal) {
+        if (hasCanalTotalRows) {
+          if (r.canal === 'Total') {
+            canalNatUnds += bUnds;
+            canalBrandUnds[r.marca] = (canalBrandUnds[r.marca] || 0) + bUnds;
+          }
+        } else if (BASE_CHANNELS.includes(r.canal)) {
+          canalNatUnds += bUnds;
+          canalBrandUnds[r.marca] = (canalBrandUnds[r.marca] || 0) + bUnds;
+        }
+      } else if (r.canal === selectedCanal) {
         canalNatUnds += bUnds;
         canalBrandUnds[r.marca] = (canalBrandUnds[r.marca] || 0) + bUnds;
       }
@@ -1015,10 +1069,11 @@ const ColombiaCanalesMarcaView = ({ onBackToPortada }) => {
       }
     ];
 
-    // 2. Series históricas completas por marca en el canal seleccionado
-    const rawSeries = historicalMonthWindow.map(mItem => {
+    // 2. Series históricas (13 meses) por marca en el canal seleccionado
+    const rawSeries = rolling13MonthWindow.map(mItem => {
       const monthRows = data.nationalChannelBrandRows.filter(
-        r => (isTotalCanal || r.canal === selectedCanal) && r.anio === mItem.anio && r.mesNum === mItem.mesNum
+        r => (isTotalCanal ? (hasCanalTotalRows ? r.canal === 'Total' : BASE_CHANNELS.includes(r.canal)) : r.canal === selectedCanal) &&
+             r.anio === mItem.anio && r.mesNum === mItem.mesNum
       );
       const point = { mesCode: mItem.mesCode };
 
@@ -1081,7 +1136,7 @@ const ColombiaCanalesMarcaView = ({ onBackToPortada }) => {
     const monthlySeries = firstValidIdx !== -1 ? rawSeries.slice(firstValidIdx) : rawSeries;
 
     return { mix, series: monthlySeries };
-  }, [data, selectedYear, selectedMonths, selectedCanal, historicalMonthWindow]);
+  }, [data, selectedYear, selectedMonths, selectedCanal, rolling13MonthWindow]);
 
   // =========================================================================
   // FILA 2: DATOS REGIONALES (MIX DE MARCAS Y MÉTRICAS EN REGIÓN SELECCIONADA)
@@ -1090,6 +1145,7 @@ const ColombiaCanalesMarcaView = ({ onBackToPortada }) => {
     if (!data?.regionChannelBrandRows) return { mix: [], series: [] };
 
     const isTotalCanal = selectedCanal === 'Total' || selectedCanal === 'TOTAL';
+    const BASE_CHANNELS = ['Droguerias', 'Super Cadena', 'Superetes', 'Tradicional'];
 
     // 1. Mix Canal Nacional vs Canal en Región Seleccionada
     const regYearRows = data.regionChannelBrandRows.filter(
@@ -1100,7 +1156,7 @@ const ColombiaCanalesMarcaView = ({ onBackToPortada }) => {
     const regBrandUnds = {};
 
     regYearRows.forEach(r => {
-      if (isTotalCanal || r.canal === selectedCanal) {
+      if (isTotalCanal ? BASE_CHANNELS.includes(r.canal) : r.canal === selectedCanal) {
         const bUnds = r.unds_k || 0;
         regCanalUnds += bUnds;
         regBrandUnds[r.marca] = (regBrandUnds[r.marca] || 0) + bUnds;
@@ -1116,10 +1172,12 @@ const ColombiaCanalesMarcaView = ({ onBackToPortada }) => {
       }
     ];
 
-    // 2. Series históricas completas por marca en canal y región seleccionados
-    const rawSeries = historicalMonthWindow.map(mItem => {
+    // 2. Series históricas (13 meses) por marca en canal y región seleccionados
+    const rawSeries = rolling13MonthWindow.map(mItem => {
       const monthRows = data.regionChannelBrandRows.filter(
-        r => r.region === selectedRegion && (isTotalCanal || r.canal === selectedCanal) && r.anio === mItem.anio && r.mesNum === mItem.mesNum
+        r => r.region === selectedRegion && 
+             (isTotalCanal ? BASE_CHANNELS.includes(r.canal) : r.canal === selectedCanal) && 
+             r.anio === mItem.anio && r.mesNum === mItem.mesNum
       );
       const point = { mesCode: mItem.mesCode };
 
@@ -1182,7 +1240,7 @@ const ColombiaCanalesMarcaView = ({ onBackToPortada }) => {
     const monthlySeries = firstValidIdx !== -1 ? rawSeries.slice(firstValidIdx) : rawSeries;
 
     return { mix, series: monthlySeries };
-  }, [data, selectedYear, selectedMonths, selectedCanal, selectedRegion, nationalData.mix, historicalMonthWindow]);
+  }, [data, selectedYear, selectedMonths, selectedCanal, selectedRegion, nationalData.mix, rolling13MonthWindow]);
 
   // =========================================================================
   // FILA 3: DATOS DE SABORES (POWER BI RIBBON CHART POR SABOR)
@@ -1190,12 +1248,8 @@ const ColombiaCanalesMarcaView = ({ onBackToPortada }) => {
   const flavorData = useMemo(() => {
     if (!data?.flavorRows) return { flavorsList: [], natSeries: [], regSeries: [], regBrandSeries: [] };
 
-    const isCanalMatch = (r) => {
-      if (selectedCanal === 'Total' || selectedCanal === 'TOTAL') {
-        return r.canal === 'Total';
-      }
-      return r.canal === selectedCanal;
-    };
+    const BASE_CHANNELS = ['Droguerias', 'Super Cadena', 'Superetes', 'Tradicional'];
+    const isTotalCanal = selectedCanal === 'Total' || selectedCanal === 'TOTAL';
 
     // Homologar todos los sabores
     const fRowsHomologated = data.flavorRows.map(r => ({
@@ -1204,7 +1258,12 @@ const ColombiaCanalesMarcaView = ({ onBackToPortada }) => {
     }));
 
     // Sabores del canal seleccionado a nivel nacional
-    const fRowsCanal = fRowsHomologated.filter(r => isCanalMatch(r) && r.region === 'TOTAL');
+    const fRowsCanal = fRowsHomologated.filter(r => {
+      if (isTotalCanal) {
+        return (r.region === 'TOTAL' && r.canal === 'Total') || BASE_CHANNELS.includes(r.canal);
+      }
+      return r.canal === selectedCanal;
+    });
 
     const flavorTotals = {};
     fRowsCanal.forEach(r => {
@@ -1217,7 +1276,7 @@ const ColombiaCanalesMarcaView = ({ onBackToPortada }) => {
       .slice(0, 15);
 
     const buildSeries = (rowsFilterFn) => {
-      const raw = historicalMonthWindow.map(mItem => {
+      const raw = rolling13MonthWindow.map(mItem => {
         const point = { mesCode: mItem.mesCode, total: 0 };
         flavorsList.forEach(f => { point[f] = 0; });
 
@@ -1237,23 +1296,39 @@ const ColombiaCanalesMarcaView = ({ onBackToPortada }) => {
       return firstValidIdx !== -1 ? raw.slice(firstValidIdx) : raw;
     };
 
-    // 1. Serie Nacional: Canal seleccionado a nivel nacional
-    const natSeries = buildSeries(r => 
-      isCanalMatch(r) && r.region === 'TOTAL'
-    );
+    // 1. Serie Nacional: Canal seleccionado a nivel nacional (Total País sin duplicar)
+    let natSeries = buildSeries(r => {
+      if (isTotalCanal) {
+        return (r.region === 'TOTAL' && r.canal === 'Total') || (r.region === 'TOTAL' && BASE_CHANNELS.includes(r.canal));
+      }
+      return (r.region === 'TOTAL' || !r.region) && r.canal === selectedCanal;
+    });
+    if (!natSeries.some(pt => pt.total > 0)) {
+      natSeries = buildSeries(r => {
+        if (isTotalCanal) return r.region !== 'TOTAL' && BASE_CHANNELS.includes(r.canal);
+        return r.canal === selectedCanal;
+      });
+    }
 
     // 2. Serie Regional Total: Canal seleccionado en la región seleccionada
-    const regSeries = buildSeries(r => 
-      isCanalMatch(r) && r.region === selectedRegion
-    );
+    const regSeries = buildSeries(r => {
+      if (isTotalCanal) {
+        return r.region === selectedRegion && BASE_CHANNELS.includes(r.canal);
+      }
+      return r.region === selectedRegion && r.canal === selectedCanal;
+    });
 
     // 3. Serie Regional con Segmentador de Marca (Tarjeta 3)
-    const regBrandSeries = buildSeries(r => 
-      isCanalMatch(r) && r.region === selectedRegion && r.marca === selectedFlavorMarca
-    );
+    const regBrandSeries = buildSeries(r => {
+      const matchBrand = r.marca === selectedFlavorMarca;
+      if (isTotalCanal) {
+        return r.region === selectedRegion && BASE_CHANNELS.includes(r.canal) && matchBrand;
+      }
+      return r.region === selectedRegion && r.canal === selectedCanal && matchBrand;
+    });
 
     return { flavorsList, natSeries, regSeries, regBrandSeries };
-  }, [data, selectedCanal, selectedRegion, selectedFlavorMarca, historicalMonthWindow]);
+  }, [data, selectedCanal, selectedRegion, selectedFlavorMarca, rolling13MonthWindow]);
 
   if (loading) {
     return (

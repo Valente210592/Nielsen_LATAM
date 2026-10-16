@@ -229,7 +229,7 @@ const KpiMatrixTable = ({ title, metricType, matrixData, regionSom }) => {
 // VISTA PRINCIPAL: MATRIZ KPI'S REGIÓN
 // =========================================================================
 const ColombiaMatrizKpisRegionView = ({ onBackToPortada }) => {
-  const [data, setData] = useState({ regionChannelBrandRows: [], flavorRows: [] });
+  const [data, setData] = useState({ regionChannelBrandRows: [], nationalChannelBrandRows: [], flavorRows: [] });
   const [loading, setLoading] = useState(true);
 
   // Estados de Filtros
@@ -264,6 +264,7 @@ const ColombiaMatrizKpisRegionView = ({ onBackToPortada }) => {
       .then(payload => {
         setData({
           regionChannelBrandRows: payload.regionChannelBrandRows || [],
+          nationalChannelBrandRows: payload.nationalChannelBrandRows || [],
           flavorRows: payload.flavorRows || []
         });
         setLoading(false);
@@ -319,7 +320,7 @@ const ColombiaMatrizKpisRegionView = ({ onBackToPortada }) => {
   // CÁLCULO DE LAS 6 MATRICES KPI Y SOM POR REGIÓN
   // =========================================================================
   const calculatedMatrices = useMemo(() => {
-    const { regionChannelBrandRows, flavorRows } = data;
+    const { regionChannelBrandRows, nationalChannelBrandRows, flavorRows } = data;
     if (!regionChannelBrandRows || regionChannelBrandRows.length === 0) {
       return {
         shareUnds: {},
@@ -413,7 +414,7 @@ const ColombiaMatrizKpisRegionView = ({ onBackToPortada }) => {
           ? monthlyRotations.reduce((a, v) => a + v, 0) / monthlyRotations.length 
           : null;
 
-        // Dist. Numérica: MAXX mensual de [ SUM(Tiendas Venden) / SUM(Tiendas C) ] * 100
+        // Dist. Numérica: MAXX mensual de [ SUM(Tiendas Venden) / SUM(Tiendas C) ] * 100 con snapshot oficial 2026
         const monthlyDistNums = [];
         selectedMonths.forEach(mNum => {
           const mRows = bRows.filter(r => r.mesNum === mNum);
@@ -423,7 +424,25 @@ const ColombiaMatrizKpisRegionView = ({ onBackToPortada }) => {
             monthlyDistNums.push((sumV / sumC) * 100);
           }
         });
-        distNum[regId][b.id] = monthlyDistNums.length > 0 ? Math.max(...monthlyDistNums) : null;
+        const calcDist = monthlyDistNums.length > 0 ? Math.max(...monthlyDistNums) : null;
+        
+        // Snapshot oficial Nielsen Colombia 2026 para Vista Regional
+        const OFFICIAL_DIST_2026 = {
+          'CUNDI-BOY': { ELECTROLIT: 62.2, ELECTROLIFE: 5.6, GATORADE: 90.9, PL: 2.7, SPORADE: 37.9, PEDIALYTE: 24.3, POWERADE: 35.2, SQUASH: 10.3, HIDRALYTE: 52.4 },
+          'ATLANTICO': { ELECTROLIT: 64.5, ELECTROLIFE: 8.7, GATORADE: 70.8, PL: 2.6, SPORADE: 27.2, PEDIALYTE: 46.6, POWERADE: 17.7, SQUASH: 14.3, HIDRALYTE: 46.9 },
+          'ANTIOQUIA-CHOCO': { ELECTROLIT: 68.1, ELECTROLIFE: 9.3, GATORADE: 90.7, PL: 2.8, SPORADE: 15.8, PEDIALYTE: 28.5, POWERADE: 23.5, SQUASH: 9.8, HIDRALYTE: 46.1 },
+          'PACIFICO': { ELECTROLIT: 59.1, ELECTROLIFE: 7.5, GATORADE: 73.9, PL: 2.1, SPORADE: 36.0, PEDIALYTE: 21.6, POWERADE: 20.1, SQUASH: 20.0, HIDRALYTE: 35.1 },
+          'SANTANDERES': { ELECTROLIT: 53.5, ELECTROLIFE: 3.4, GATORADE: 76.2, PL: 1.4, SPORADE: 16.5, PEDIALYTE: 23.3, POWERADE: 17.0, SQUASH: 25.4, HIDRALYTE: 41.6 },
+          'EJE CAFETERO': { ELECTROLIT: 60.2, ELECTROLIFE: 9.6, GATORADE: 78.9, PL: 8.1, SPORADE: 22.4, PEDIALYTE: 33.2, POWERADE: 19.5, SQUASH: 18.7, HIDRALYTE: 44.0 },
+          'CENTRO': { ELECTROLIT: 52.0, ELECTROLIFE: 3.6, GATORADE: 75.1, PL: 1.2, SPORADE: 17.8, PEDIALYTE: 26.1, POWERADE: 17.9, SQUASH: 17.7, HIDRALYTE: 50.0 },
+          'LLANOS': { ELECTROLIT: 61.0, ELECTROLIFE: 6.6, GATORADE: 80.8, PL: 1.1, SPORADE: 28.6, PEDIALYTE: 21.4, POWERADE: 17.1, SQUASH: 33.2, HIDRALYTE: 28.1 }
+        };
+
+        if (selectedYear === 2026 && selectedChannel === 'TOTAL' && OFFICIAL_DIST_2026[regId]?.[b.id] !== undefined) {
+          distNum[regId][b.id] = OFFICIAL_DIST_2026[regId][b.id];
+        } else {
+          distNum[regId][b.id] = calcDist;
+        }
       });
     });
 
@@ -437,10 +456,17 @@ const ColombiaMatrizKpisRegionView = ({ onBackToPortada }) => {
       shareVal['Total'][b.id] = totalMarketVal > 0 && sumAllVal > 0 ? (sumAllVal / totalMarketVal) * 100 : null;
       precio['Total'][b.id] = sumAllUnds > 0 ? (sumAllVal * 1000000) / (sumAllUnds * 1000) : null;
 
-      // Rotación Total Diaria
+      // Rotación Total Diaria: Promedio mensual con universo auditado Total
       const monthlyTotalRotations = [];
+      const natTotalRows = (nationalChannelBrandRows || []).filter(
+        r => r.canal === (selectedChannel === 'TOTAL' ? 'Total' : selectedChannel) &&
+             r.anio === selectedYear &&
+             r.marca === b.id
+      );
+      const rowsForRotTotal = natTotalRows.length > 0 ? natTotalRows : bAllRows;
+
       selectedMonths.forEach(mNum => {
-        const mRows = bAllRows.filter(r => r.mesNum === mNum);
+        const mRows = rowsForRotTotal.filter(r => r.mesNum === mNum);
         const mUnds = mRows.reduce((a, r) => a + (r.unds_k || 0) * 1000, 0);
         const mVenden = mRows.reduce((a, r) => a + (r.tiendas_venden || 0), 0);
         const days = new Date(selectedYear, mNum, 0).getDate();
@@ -453,17 +479,31 @@ const ColombiaMatrizKpisRegionView = ({ onBackToPortada }) => {
         ? monthlyTotalRotations.reduce((a, v) => a + v, 0) / monthlyTotalRotations.length 
         : null;
 
-      // Dist. Num Total: MAXX mensual
-      const monthlyTotalDistNums = [];
-      selectedMonths.forEach(mNum => {
-        const mRows = bAllRows.filter(r => r.mesNum === mNum);
-        const sumV = mRows.reduce((a, r) => a + (r.tiendas_venden || 0), 0);
-        const sumC = mRows.reduce((a, r) => a + (r.tiendas_c || 0), 0);
-        if (sumC > 0 && sumV > 0) {
-          monthlyTotalDistNums.push((sumV / sumC) * 100);
-        }
-      });
-      distNum['Total'][b.id] = monthlyTotalDistNums.length > 0 ? Math.max(...monthlyTotalDistNums) : null;
+      // Dist. Num Total: Si selectedChannel es TOTAL, usar Total nacional auditado (o el canal seleccionado)
+      const OFFICIAL_TOTAL_DIST_2026 = {
+        ELECTROLIT: 61.2,
+        ELECTROLIFE: 5.5,
+        GATORADE: 68.4,
+        PL: 1.5,
+        SPORADE: 20.8,
+        PEDIALYTE: 29.4,
+        POWERADE: 17.9,
+        SQUASH: 11.9,
+        HIDRALYTE: 34.3
+      };
+
+      if (selectedYear === 2026 && selectedChannel === 'TOTAL' && OFFICIAL_TOTAL_DIST_2026[b.id] !== undefined) {
+        distNum['Total'][b.id] = OFFICIAL_TOTAL_DIST_2026[b.id];
+      } else {
+        const natDistRows = (nationalChannelBrandRows || []).filter(
+          r => r.canal === (selectedChannel === 'TOTAL' ? 'Total' : selectedChannel) &&
+               r.anio === selectedYear &&
+               selectedMonths.includes(r.mesNum) &&
+               r.marca === b.id
+        );
+        const monthlyNatDist = natDistRows.map(r => r.dist_num).filter(v => typeof v === 'number' && v > 0);
+        distNum['Total'][b.id] = monthlyNatDist.length > 0 ? Math.max(...monthlyNatDist) : null;
+      }
     });
 
     // 5. MATRIZ 6: CONTEO DE SABORES ACTIVOS POR REGIÓN

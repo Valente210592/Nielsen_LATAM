@@ -864,7 +864,7 @@ const ColombiaOverviewView = ({ onBackToPortada }) => {
           </div>
           
           <div className="w-full flex items-end justify-between gap-1 sm:gap-2 h-64 pt-4 px-1 relative">
-            {/* SVG Background Layer for Connected Trend Lines */}
+            {/* SVG Background Layer for Connected Trend Lines & Attached Labels */}
             {(() => {
               const numPts = displayedMonthlyData.length;
               const svgWidth = 640;
@@ -875,13 +875,13 @@ const ColombiaOverviewView = ({ onBackToPortada }) => {
                 const x = 24 + idx * ((svgWidth - 48) / Math.max(1, numPts - 1));
                 const ySuer = 30 + (1 - (m.sueros_precio - minP) / (maxP - minP)) * 90;
                 const yIsot = 30 + (1 - (m.isotonicos_precio - minP) / (maxP - minP)) * 90;
-                return { x, ySuer, yIsot };
+                return { x, ySuer, yIsot, m };
               });
               const pathSuer = pts.map((p, i) => `${i === 0 ? 'M' : 'L'} ${p.x} ${p.ySuer}`).join(' ');
               const pathIsot = pts.map((p, i) => `${i === 0 ? 'M' : 'L'} ${p.x} ${p.yIsot}`).join(' ');
 
               return (
-                <svg className="absolute inset-x-2 top-10 h-40 w-[calc(100%-16px)] pointer-events-none" viewBox={`0 0 ${svgWidth} ${svgHeight}`} preserveAspectRatio="none">
+                <svg className="absolute inset-x-2 top-6 h-48 w-[calc(100%-16px)] pointer-events-none overflow-visible" viewBox={`0 0 ${svgWidth} ${svgHeight}`} preserveAspectRatio="none">
                   {/* Grid Lines */}
                   <line x1="10" y1="35" x2={svgWidth - 10} y2="35" stroke="#f1f5f9" strokeDasharray="3 3" />
                   <line x1="10" y1="85" x2={svgWidth - 10} y2="85" stroke="#f1f5f9" strokeDasharray="3 3" />
@@ -891,33 +891,31 @@ const ColombiaOverviewView = ({ onBackToPortada }) => {
                   <path d={pathSuer} fill="none" stroke="#0aa0b9" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" />
                   <path d={pathIsot} fill="none" stroke="#f39257" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" />
 
-                  {/* Nodes */}
+                  {/* Nodes & Attached Colored Badges */}
                   {pts.map((p, i) => (
                     <g key={i}>
+                      {/* Sueros (Cyan / Teal) */}
                       <circle cx={p.x} cy={p.ySuer} r="4.5" fill="#0aa0b9" stroke="#ffffff" strokeWidth="2" />
+                      <rect x={p.x - 17} y={p.ySuer - 20} width="34" height="14" rx="3" fill="#e6f7fa" stroke="#0aa0b9" strokeWidth="1" />
+                      <text x={p.x} y={p.ySuer - 10} textAnchor="middle" fontSize="8.5" fontWeight="bold" fill="#087d91">
+                        {Math.round(p.m.sueros_precio).toLocaleString()}
+                      </text>
+
+                      {/* Isotónicas (Orange) */}
                       <circle cx={p.x} cy={p.yIsot} r="4.5" fill="#f39257" stroke="#ffffff" strokeWidth="2" />
+                      <rect x={p.x - 17} y={p.yIsot + 7} width="34" height="14" rx="3" fill="#fef3eb" stroke="#f39257" strokeWidth="1" />
+                      <text x={p.x} y={p.yIsot + 17} textAnchor="middle" fontSize="8.5" fontWeight="bold" fill="#c05621">
+                        {Math.round(p.m.isotonicos_precio).toLocaleString()}
+                      </text>
                     </g>
                   ))}
                 </svg>
               );
             })()}
 
-            {/* Pure HTML Column Structure with Identical Total Boxes */}
+            {/* Mes Labels Footer */}
             {displayedMonthlyData.map(m => (
-              <div key={m.mesCode} className="flex-1 flex flex-col items-center h-full justify-between group min-w-0 z-10 py-1">
-                {/* Sueros Value Box (Top) */}
-                <span className="text-[9.5px] font-bold text-slate-700 bg-[#f1f3f5] border border-[#ced4da] px-1.5 py-0.5 rounded-xs shadow-2xs whitespace-nowrap">
-                  {Math.round(m.sueros_precio).toLocaleString()}
-                </span>
-
-                <div className="flex-1 my-3"></div>
-
-                {/* Isotónicas Value Box (Bottom) */}
-                <span className="text-[9.5px] font-bold text-slate-700 bg-[#f1f3f5] border border-[#ced4da] px-1.5 py-0.5 rounded-xs shadow-2xs whitespace-nowrap">
-                  {Math.round(m.isotonicos_precio).toLocaleString()}
-                </span>
-
-                {/* Mes Label */}
+              <div key={m.mesCode} className="flex-1 flex flex-col items-center h-full justify-end group min-w-0 z-10 py-1">
                 <span className="text-[9.5px] font-bold text-slate-600 mt-2 whitespace-nowrap">{m.mesCode}</span>
               </div>
             ))}
@@ -989,7 +987,7 @@ const ColombiaOverviewView = ({ onBackToPortada }) => {
           </div>
           
           <div className="w-full flex items-end justify-between gap-1 sm:gap-2 h-64 pt-4 px-1 relative">
-            {/* SVG Background Layer for Connected Trend Lines */}
+            {/* SVG Background Layer for Connected Trend Lines & Attached Labels */}
             {(() => {
               const numPts = displayedMonthlyData.length;
               const svgWidth = 640;
@@ -1000,13 +998,13 @@ const ColombiaOverviewView = ({ onBackToPortada }) => {
                 const x = 24 + idx * ((svgWidth - 48) / Math.max(1, numPts - 1));
                 const yIsot = 30 + (1 - (m.isotonicos_dist - minD) / (maxD - minD)) * 90;
                 const ySuer = 30 + (1 - (m.sueros_dist - minD) / (maxD - minD)) * 90;
-                return { x, yIsot, ySuer };
+                return { x, yIsot, ySuer, m };
               });
               const pathIsot = pts.map((p, i) => `${i === 0 ? 'M' : 'L'} ${p.x} ${p.yIsot}`).join(' ');
               const pathSuer = pts.map((p, i) => `${i === 0 ? 'M' : 'L'} ${p.x} ${p.ySuer}`).join(' ');
 
               return (
-                <svg className="absolute inset-x-2 top-10 h-40 w-[calc(100%-16px)] pointer-events-none" viewBox={`0 0 ${svgWidth} ${svgHeight}`} preserveAspectRatio="none">
+                <svg className="absolute inset-x-2 top-6 h-48 w-[calc(100%-16px)] pointer-events-none overflow-visible" viewBox={`0 0 ${svgWidth} ${svgHeight}`} preserveAspectRatio="none">
                   {/* Grid Lines */}
                   <line x1="10" y1="35" x2={svgWidth - 10} y2="35" stroke="#f1f5f9" strokeDasharray="3 3" />
                   <line x1="10" y1="85" x2={svgWidth - 10} y2="85" stroke="#f1f5f9" strokeDasharray="3 3" />
@@ -1016,33 +1014,31 @@ const ColombiaOverviewView = ({ onBackToPortada }) => {
                   <path d={pathIsot} fill="none" stroke="#f39257" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" />
                   <path d={pathSuer} fill="none" stroke="#0aa0b9" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" />
 
-                  {/* Nodes */}
+                  {/* Nodes & Attached Colored Badges */}
                   {pts.map((p, i) => (
                     <g key={i}>
+                      {/* Isotónicas (Orange, Top Line 76%-79%) */}
                       <circle cx={p.x} cy={p.yIsot} r="4.5" fill="#f39257" stroke="#ffffff" strokeWidth="2" />
+                      <rect x={p.x - 14} y={p.yIsot - 20} width="28" height="14" rx="3" fill="#fef3eb" stroke="#f39257" strokeWidth="1" />
+                      <text x={p.x} y={p.yIsot - 10} textAnchor="middle" fontSize="8.5" fontWeight="bold" fill="#c05621">
+                        {Math.round(p.m.isotonicos_dist)}%
+                      </text>
+
+                      {/* Sueros (Cyan / Teal, Bottom Line 60%-64%) */}
                       <circle cx={p.x} cy={p.ySuer} r="4.5" fill="#0aa0b9" stroke="#ffffff" strokeWidth="2" />
+                      <rect x={p.x - 14} y={p.ySuer + 7} width="28" height="14" rx="3" fill="#e6f7fa" stroke="#0aa0b9" strokeWidth="1" />
+                      <text x={p.x} y={p.ySuer + 17} textAnchor="middle" fontSize="8.5" fontWeight="bold" fill="#087d91">
+                        {Math.round(p.m.sueros_dist)}%
+                      </text>
                     </g>
                   ))}
                 </svg>
               );
             })()}
 
-            {/* Pure HTML Column Structure with Identical Total Boxes */}
+            {/* Mes Labels Footer */}
             {displayedMonthlyData.map(m => (
-              <div key={m.mesCode} className="flex-1 flex flex-col items-center h-full justify-between group min-w-0 z-10 py-1">
-                {/* Isotónicas Value Box (Top: 76% to 79%) */}
-                <span className="text-[9.5px] font-bold text-slate-700 bg-[#f1f3f5] border border-[#ced4da] px-1.5 py-0.5 rounded-xs shadow-2xs whitespace-nowrap">
-                  {Math.round(m.isotonicos_dist)}%
-                </span>
-
-                <div className="flex-1 my-3"></div>
-
-                {/* Sueros Value Box (Bottom: 60% to 64%) */}
-                <span className="text-[9.5px] font-bold text-slate-700 bg-[#f1f3f5] border border-[#ced4da] px-1.5 py-0.5 rounded-xs shadow-2xs whitespace-nowrap">
-                  {Math.round(m.sueros_dist)}%
-                </span>
-
-                {/* Mes Label */}
+              <div key={m.mesCode} className="flex-1 flex flex-col items-center h-full justify-end group min-w-0 z-10 py-1">
                 <span className="text-[9.5px] font-bold text-slate-600 mt-2 whitespace-nowrap">{m.mesCode}</span>
               </div>
             ))}
@@ -1089,7 +1085,15 @@ const ColombiaOverviewView = ({ onBackToPortada }) => {
                       </td>
                       {displayedMonthlyData.map((m, mIdx) => {
                         const val = row.meses[m.mesCode];
-                        const prevMesCode = mIdx > 0 ? displayedMonthlyData[mIdx - 1].mesCode : null;
+                        const prevMesCode = mIdx > 0 
+                          ? displayedMonthlyData[mIdx - 1].mesCode 
+                          : (() => {
+                              const list = monthlyData || DEFAULT_MONTHLY_DATA;
+                              const idxInList = list.findIndex(item => item.mesCode === m.mesCode);
+                              if (idxInList > 0) return list[idxInList - 1].mesCode;
+                              if (m.mesCode === 'ago-25') return 'jul-25';
+                              return null;
+                            })();
                         const prevVal = prevMesCode ? row.meses[prevMesCode] : null;
                         
                         let diff = null;
@@ -1159,7 +1163,15 @@ const ColombiaOverviewView = ({ onBackToPortada }) => {
                       </td>
                       {displayedMonthlyData.map((m, mIdx) => {
                         const val = row.meses[m.mesCode];
-                        const prevMesCode = mIdx > 0 ? displayedMonthlyData[mIdx - 1].mesCode : null;
+                        const prevMesCode = mIdx > 0 
+                          ? displayedMonthlyData[mIdx - 1].mesCode 
+                          : (() => {
+                              const list = monthlyData || DEFAULT_MONTHLY_DATA;
+                              const idxInList = list.findIndex(item => item.mesCode === m.mesCode);
+                              if (idxInList > 0) return list[idxInList - 1].mesCode;
+                              if (m.mesCode === 'ago-25') return 'jul-25';
+                              return null;
+                            })();
                         const prevVal = prevMesCode ? row.meses[prevMesCode] : null;
                         
                         let diff = null;

@@ -13,8 +13,8 @@ const MasterPortalView = ({ onSelectCountry, onOpenSemanticModel }) => {
       id: 'PE',
       name: 'Perú',
       flag: '/assets/Banderas/Peru.png',
-      enabled: false,
-      status: 'Próximamente'
+      enabled: true,
+      status: 'Disponible'
     },
     {
       id: 'GT',
@@ -70,7 +70,7 @@ const MasterPortalView = ({ onSelectCountry, onOpenSemanticModel }) => {
         <img 
           src="/assets/LOGOS/Nielsen-logo.png" 
           alt="Nielsen" 
-          className="h-6 sm:h-7 md:h-8 object-contain mt-1 drop-shadow-xs" 
+          className="h-6 sm:h-7 md:h-8 object-contain mt-1 mix-blend-multiply drop-shadow-xs" 
         />
       </div>
 

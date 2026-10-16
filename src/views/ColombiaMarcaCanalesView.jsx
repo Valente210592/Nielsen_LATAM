@@ -957,8 +957,16 @@ const ColombiaMarcaCanalesView = ({ onBackToPortada }) => {
       .sort((a, b) => flavorTotals[b] - flavorTotals[a])
       .slice(0, 15);
 
+    const targetFlavorMonthsWindow = (selectedMonths && selectedMonths.length > 0)
+      ? [...selectedMonths].sort((a, b) => a - b).map(mNum => ({
+          anio: selectedYear,
+          mesNum: mNum,
+          mesCode: `${SPANISH_MONTH_SHORT[mNum]}-${String(selectedYear).slice(-2)}`
+        }))
+      : rolling13MonthWindow;
+
     const buildSeries = (filterFn) => {
-      const raw = rolling13MonthWindow.map(mItem => {
+      const raw = targetFlavorMonthsWindow.map(mItem => {
         const point = { mesCode: mItem.mesCode, total: 0 };
         flavorsList.forEach(f => { point[f] = 0; });
 
@@ -978,27 +986,33 @@ const ColombiaMarcaCanalesView = ({ onBackToPortada }) => {
       return firstValidIdx !== -1 ? raw.slice(firstValidIdx) : raw;
     };
 
-    // 1. Serie Nacional: Apertura Total o (TOTAL y Total)
-    let natSeries = buildSeries(r => r.apertura_cr === 'Total' || (r.region === 'TOTAL' && r.canal === 'Total'));
+    const BASE_CHANNELS = ['Droguerias', 'Super Cadena', 'Superetes', 'Tradicional'];
+    const hasTotalCanalRows = fRowsBrand.some(r => r.region === 'TOTAL' && r.canal === 'Total' && (r.unds_k || 0) > 0);
+
+    // 1. Serie Nacional: Total país sin duplicación
+    let natSeries = buildSeries(r => {
+      if (hasTotalCanalRows) {
+        return r.region === 'TOTAL' && r.canal === 'Total';
+      }
+      return r.region === 'TOTAL' && BASE_CHANNELS.includes(r.canal);
+    });
     if (!natSeries.some(pt => pt.total > 0)) {
-      natSeries = buildSeries(r => r.region === 'TOTAL' || r.canal === 'Total' || r.apertura_cr === 'Total');
+      natSeries = buildSeries(r => r.region !== 'TOTAL' && BASE_CHANNELS.includes(r.canal));
     }
 
-    // 2. Serie Regional Total: Apertura Region para la región seleccionada
-    let regSeries = buildSeries(r => r.apertura_cr === 'Region' && r.region === selectedRegion);
-    if (!regSeries.some(pt => pt.total > 0)) {
-      regSeries = buildSeries(r => r.region === selectedRegion && (r.canal === 'Total' || !r.canal));
-    }
+    // 2. Serie Regional Total: Canales base para la región seleccionada
+    let regSeries = buildSeries(r => 
+      r.region === selectedRegion && BASE_CHANNELS.includes(r.canal)
+    );
 
-    // 3. Serie Regional x Canal: Apertura Canal/Region para región y canal seleccionados
+    // 3. Serie Regional x Canal: Canal seleccionado dentro de la región seleccionada
     const regCanalSeries = buildSeries(r => 
-      (r.apertura_cr === 'Canal/Region' || r.apertura_cr === 'Canal/Region/Drog' || !r.apertura_cr) &&
       r.region === selectedRegion && 
       (r.canal === selectedFlavorCanal || (selectedFlavorCanal === 'Droguerias' && r.canal && r.canal.toLowerCase().includes('drogueria')))
     );
 
     return { flavorsList, natSeries, regSeries, regCanalSeries };
-  }, [data, selectedMarca, selectedRegion, selectedFlavorCanal, rolling13MonthWindow]);
+  }, [data, selectedMarca, selectedRegion, selectedFlavorCanal, selectedYear, selectedMonths, rolling13MonthWindow]);
 
   if (loading) {
     return (

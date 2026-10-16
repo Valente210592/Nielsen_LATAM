@@ -34,6 +34,17 @@ import ColombiaMarcaCanalesView from './views/ColombiaMarcaCanalesView';
 import ColombiaCanalesMarcaView from './views/ColombiaCanalesMarcaView';
 import ColombiaMatrizKpisView from './views/ColombiaMatrizKpisView';
 import ColombiaMatrizKpisRegionView from './views/ColombiaMatrizKpisRegionView';
+import ColombiaGrowthDriversView from './views/ColombiaGrowthDriversView';
+import ColombiaBcgView from './views/ColombiaBcgView';
+import PeruPortadaView from './views/PeruPortadaView';
+import PeruOverviewView from './views/PeruOverviewView';
+import PeruMarcaView from './views/PeruMarcaView';
+import PeruCanalView from './views/PeruCanalView';
+import PeruMatrizKpisView from './views/PeruMatrizKpisView';
+import PeruMatrizKpisRegionView from './views/PeruMatrizKpisRegionView';
+import PeruGrowthDriversView from './views/PeruGrowthDriversView';
+import PeruMarcaCanalView from './views/PeruMarcaCanalView';
+import PeruView from './views/PeruView';
 
 // ==========================================
 // ERROR BOUNDARY
@@ -210,65 +221,55 @@ function PortadaCostaRica({ onNavigate, onBackToMaster }) {
   ];
 
   return (
-    <div className="min-h-screen bg-[#f3f6f9] relative flex flex-col justify-between overflow-hidden px-6 md:px-12 py-6 select-none font-sans">
+    <div className="min-h-screen bg-[#f4f6f9] relative flex flex-col justify-between overflow-hidden px-6 md:px-12 py-5 select-none font-sans">
       
-      {/* Fondo de Nodos y Redes Geométricas estilo Nielsen */}
-      <svg className="absolute inset-0 w-full h-full opacity-20 pointer-events-none" xmlns="http://www.w3.org/2000/svg">
+      {/* Fondo de Malla Geométrica Nielsen */}
+      <svg className="absolute inset-0 w-full h-full opacity-15 pointer-events-none" xmlns="http://www.w3.org/2000/svg">
         <defs>
-          <pattern id="network-mesh-bg" width="180" height="180" patternUnits="userSpaceOnUse">
-            <circle cx="20" cy="30" r="2" fill="#64748b" />
-            <circle cx="120" cy="40" r="2.5" fill="#475569" />
-            <circle cx="150" cy="130" r="2" fill="#64748b" />
-            <circle cx="70" cy="140" r="2.5" fill="#475569" />
-            <line x1="20" y1="30" x2="120" y2="40" stroke="#94a3b8" strokeWidth="0.8" />
-            <line x1="120" y1="40" x2="150" y2="130" stroke="#94a3b8" strokeWidth="0.8" />
+          <pattern id="network-mesh-bg-cr" width="180" height="160" patternUnits="userSpaceOnUse">
+            <circle cx="20" cy="30" r="2.5" fill="#004B93" />
+            <circle cx="150" cy="130" r="2.5" fill="#004B93" />
+            <circle cx="70" cy="140" r="2" fill="#00c0f3" />
+            <circle cx="130" cy="40" r="2" fill="#00c0f3" />
+            <line x1="20" y1="30" x2="130" y2="40" stroke="#94a3b8" strokeWidth="0.8" />
+            <line x1="130" y1="40" x2="150" y2="130" stroke="#94a3b8" strokeWidth="0.8" />
             <line x1="150" y1="130" x2="70" y2="140" stroke="#94a3b8" strokeWidth="0.8" />
             <line x1="70" y1="140" x2="20" y2="30" stroke="#94a3b8" strokeWidth="0.8" />
             <line x1="20" y1="30" x2="150" y2="130" stroke="#cbd5e1" strokeWidth="0.6" strokeDasharray="3 3" />
           </pattern>
         </defs>
-        <rect width="100%" height="100%" fill="url(#network-mesh-bg)" />
+        <rect width="100%" height="100%" fill="url(#network-mesh-bg-cr)" />
       </svg>
 
-      {/* CABECERA SUPERIOR */}
-      <div className="flex items-center justify-between w-full max-w-5xl mx-auto z-10 px-2">
-        <div className="flex items-center justify-center w-28 md:w-32">
+      {/* CABECERA SUPERIOR: LOGO ELECTROLIT | LOGO NIELSEN */}
+      <div className="flex items-center justify-between w-full max-w-6xl mx-auto z-10 px-2 pt-1">
+        <div className="flex items-center">
           <img 
             src="/assets/LOGOS/Electrolit-color.png" 
             alt="Electrolit Logo" 
             className="h-10 md:h-12 object-contain"
-            onError={(e) => {
-              e.target.style.display = 'none';
-              e.target.nextSibling.style.display = 'flex';
-            }}
           />
-          <div className="hidden items-center text-3xl font-black italic tracking-wide text-[#004B93]">
-            Electrolit
-          </div>
         </div>
 
         <button 
           onClick={onBackToMaster}
           title="Regresar a Portada Maestra de Países"
-          className="group flex items-center gap-2 p-1.5 rounded-xl hover:bg-white/80 transition-all cursor-pointer"
+          className="group flex items-center gap-2 p-1.5 rounded-xl hover:bg-slate-200/50 transition-all cursor-pointer"
         >
           <img 
             src="/assets/LOGOS/Nielsen-logo.png" 
             alt="Nielsen Logo" 
-            className="h-8 md:h-10 object-contain group-hover:scale-105 transition-transform" 
+            className="h-8 md:h-9 object-contain mix-blend-multiply group-hover:scale-105 transition-transform" 
           />
-          <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider group-hover:text-[#0066c0] hidden md:inline-block">
-            ← Países
-          </span>
         </button>
       </div>
 
-      {/* COMPOSICIÓN ARTÍSTICA CENTRAL */}
-      <div className="max-w-5xl w-full mx-auto my-auto z-10 py-2">
-        <div className="relative flex flex-col items-center justify-center min-h-[290px]">
+      {/* HERO CENTRAL: MEDALLÓN COSTA RICA + ILUSTRACIÓN NATURALEZA + BOTELLA DE ELECTROLIT */}
+      <div className="max-w-6xl w-full mx-auto my-auto z-10 py-1">
+        <div className="relative flex items-center justify-center min-h-[300px]">
           
           {/* LADO IZQUIERDO: Bandera Costa Rica y Título Centrados */}
-          <div className="absolute left-0 top-0 w-28 md:w-32 flex flex-col items-center text-center z-20">
+          <div className="absolute left-2 md:left-8 top-4 flex flex-col items-center text-center z-20">
             <div className="w-24 h-24 md:w-28 md:h-28 rounded-full border-4 border-white shadow-xl overflow-hidden bg-white hover:scale-105 transition-transform duration-300 flex items-center justify-center">
               <img 
                 src="/assets/Banderas/Costa Rica.png" 
@@ -279,120 +280,141 @@ function PortadaCostaRica({ onNavigate, onBackToMaster }) {
                 }}
               />
             </div>
-            <h2 className="text-2xl md:text-3xl font-black text-[#0066c0] mt-3 tracking-tight text-center whitespace-nowrap">
+            <h2 className="text-2xl md:text-3xl font-black text-[#0066c0] mt-3 tracking-tight">
               Costa Rica
             </h2>
           </div>
 
-          {/* CENTRO: ILUSTRACIÓN DE NATURALEZA Y BOTELLA DE ELECTROLIT */}
-          <div className="flex items-center justify-center gap-6 md:gap-12 relative">
-            <div className="flex flex-col items-center gap-3 select-none">
-              <div className="w-28 h-16 relative flex items-center justify-center opacity-90">
-                <svg viewBox="0 0 120 70" className="w-full h-full stroke-blue-500 fill-none stroke-[2.5]" strokeLinecap="round">
-                  <path d="M 10 50 Q 30 20 55 35 T 90 20 Q 105 10 110 30" />
-                  <path d="M 25 55 Q 45 35 70 45 T 100 35" strokeWidth="1.8" className="stroke-cyan-400" />
-                  <path d="M 40 60 Q 60 48 85 55" strokeWidth="1.2" className="stroke-blue-300" />
-                </svg>
-              </div>
+          {/* CENTRO: COMPOSICIÓN 3D PURA VIDA + BOTELLA DE ELECTROLIT */}
+          <div className="relative flex items-center justify-center w-full max-w-3xl min-h-[290px]">
+            
+            {/* Olas y Naturaleza Vectorial Tropical */}
+            <div className="absolute inset-0 flex items-center justify-center pointer-events-none opacity-80">
+              <svg viewBox="0 0 600 280" className="w-full h-full max-w-[580px]" fill="none" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M 10 180 Q 70 140 130 160 T 260 110 T 380 140 T 520 120 T 590 160" stroke="#0284c7" strokeWidth="1.2" opacity="0.45" />
+                <path d="M 40 190 Q 110 120 180 150 T 320 80 T 440 130 T 570 140" stroke="#0ea5e9" strokeWidth="1.5" opacity="0.6" />
+                <path d="M 90 240 L 140 190 L 165 205 L 180 150 L 210 100 L 225 110 L 240 70 L 260 120 L 280 140 L 310 180 L 330 200 L 360 220" stroke="#10b981" strokeWidth="2.2" opacity="0.8" />
+              </svg>
+            </div>
 
-              <div className="w-28 h-32 relative flex flex-col items-center justify-center">
-                <div className="relative group">
-                  <div className="text-emerald-600 text-5xl absolute -bottom-2 -left-3 opacity-90 rotate-[-15deg]">🌿</div>
-                  <div className="text-emerald-500 text-5xl absolute -bottom-1 -right-2 opacity-80 rotate-[25deg]">🌿</div>
-                  <div className="relative z-10 text-5xl md:text-6xl filter drop-shadow-md transform -scale-x-100 hover:rotate-6 transition-transform">
+            <div className="flex items-center justify-center gap-6 md:gap-12 relative z-20">
+              
+              {/* LADO IZQUIERDO DE LA BOTELLA: TUCÁN Y FLORA PURA VIDA 3D */}
+              <div className="hidden sm:flex flex-col items-center gap-2 select-none group cursor-pointer">
+                {/* Olas de Playa Hermosa */}
+                <div className="w-24 h-12 relative flex items-center justify-center opacity-85">
+                  <div className="text-3xl text-cyan-500 filter drop-shadow-sm">🌊</div>
+                </div>
+
+                {/* Tucán & Follaje Tropical 3D */}
+                <div className="w-28 h-28 relative flex flex-col items-center justify-center">
+                  <div className="text-emerald-600 text-4xl absolute -bottom-1 -left-2 opacity-90 rotate-[-15deg] group-hover:rotate-0 transition-transform">
+                    🌿
+                  </div>
+                  <div className="text-emerald-500 text-3xl absolute -top-2 right-1 opacity-80">
+                    🍃
+                  </div>
+                  <div className="relative z-10 text-5xl md:text-6xl filter drop-shadow-[0_8px_12px_rgba(0,0,0,0.18)] transform group-hover:scale-110 transition-transform">
                     🦜
                   </div>
                 </div>
               </div>
-            </div>
 
-            <div className="relative flex flex-col items-center justify-center z-10 px-2">
-              <div className="absolute inset-0 -m-8 pointer-events-none opacity-80">
-                <div className="w-2 h-2 rounded-full bg-cyan-400 absolute top-4 left-6 animate-ping"></div>
-                <div className="w-3 h-3 rounded-full bg-blue-400 absolute top-12 right-4"></div>
-                <div className="w-2 h-2 rounded-full bg-cyan-300 absolute bottom-14 left-4"></div>
-                <div className="w-2.5 h-2.5 rounded-full bg-blue-500 absolute bottom-8 right-8"></div>
-                <div className="w-1.5 h-1.5 rounded-full bg-cyan-400 absolute top-20 left-2"></div>
+              {/* CENTRO: BOTELLA ELECTROLIT CON GOTAS */}
+              <div className="relative flex flex-col items-center justify-center px-1">
+                <div className="absolute inset-0 -m-8 pointer-events-none opacity-80">
+                  <div className="w-2 h-2 rounded-full bg-cyan-400 absolute top-4 left-4"></div>
+                  <div className="w-3 h-3 rounded-full bg-blue-400 absolute top-10 right-2"></div>
+                  <div className="w-2 h-2 rounded-full bg-cyan-300 absolute bottom-12 left-2"></div>
+                  <div className="w-2.5 h-2.5 rounded-full bg-blue-500 absolute bottom-6 right-6"></div>
+                </div>
+
+                <div className="relative z-10 flex flex-col items-center justify-center cursor-pointer group">
+                  <img 
+                    src="/assets/Botellas/Costa_Rica_Uva_Portada.png" 
+                    alt="Botella Electrolit" 
+                    className="h-60 md:h-72 object-contain drop-shadow-2xl group-hover:scale-105 transition-all duration-300"
+                    onError={(e) => {
+                      e.target.src = "/assets/botella_electrolit.png";
+                    }}
+                  />
+                  <div className="w-32 h-4 bg-slate-500/25 rounded-full blur-md -mt-1 group-hover:w-36 transition-all" />
+                </div>
               </div>
 
-              <div className="relative group cursor-pointer transform hover:scale-105 transition-all duration-300">
-                <img 
-                  src="/assets/Botellas/Costa_Rica_Uva_Portada.png" 
-                  alt="Botella Electrolit" 
-                  className="h-64 md:h-72 object-contain filter drop-shadow-2xl"
-                  onError={(e) => {
-                    e.target.src = "/assets/botella_electrolit.png";
-                  }}
-                />
-                <div className="w-28 h-4 bg-slate-400/30 rounded-full blur-sm mx-auto -mt-2"></div>
-              </div>
-            </div>
+              {/* LADO DERECHO DE LA BOTELLA: OSO PEREZOSO & VOLCÁN ARENAL 3D */}
+              <div className="hidden sm:flex flex-col items-center gap-2 select-none group cursor-pointer">
+                {/* Volcán Arenal */}
+                <div className="w-24 h-12 relative flex items-center justify-center opacity-85">
+                  <div className="text-3xl text-emerald-600 filter drop-shadow-sm">🌋</div>
+                </div>
 
-            <div className="flex flex-col items-center gap-3 select-none">
-              <div className="w-32 h-16 relative flex items-center justify-center opacity-90">
-                <svg viewBox="0 0 130 70" className="w-full h-full stroke-emerald-600 fill-none stroke-[2.2]" strokeLinecap="round">
-                  <path d="M 50 15 Q 65 10 80 15 Q 90 20 80 25 Q 65 25 50 20 Z" strokeWidth="1.2" className="stroke-slate-400 fill-white/40" />
-                  <path d="M 15 60 L 58 22 L 68 22 L 115 60" />
-                  <path d="M 30 60 L 62 30 L 98 60" strokeWidth="1.2" className="stroke-emerald-400" />
-                </svg>
-              </div>
-
-              <div className="w-32 h-32 relative flex flex-col items-center justify-center">
-                <div className="w-28 h-2.5 bg-amber-800/80 rounded-full shadow-xs transform rotate-[-8deg] relative">
-                  <span className="absolute -top-3 left-2 text-sm">🍃</span>
-                  <span className="absolute -bottom-2 right-4 text-xs">🌱</span>
-                  <div className="absolute top-1 left-7 text-5xl transform hover:scale-110 transition-transform">
+                {/* Oso Perezoso 3D & Rama */}
+                <div className="w-28 h-28 relative flex flex-col items-center justify-center">
+                  <div className="text-pink-500 text-3xl absolute -bottom-1 -left-2 opacity-90">
+                    🌺
+                  </div>
+                  <div className="text-emerald-500 text-2xl absolute -bottom-1 -right-1 opacity-85">
+                    🌱
+                  </div>
+                  <div className="relative z-10 text-5xl md:text-6xl filter drop-shadow-[0_8px_12px_rgba(0,0,0,0.18)] transform group-hover:scale-110 transition-transform">
                     🦥
                   </div>
                 </div>
               </div>
+
             </div>
           </div>
         </div>
 
-        {/* 8 BOTONES CAPSULARES DE NAVEGACIÓN ESTILO POWER BI */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-x-12 gap-y-5 max-w-4xl mx-auto mt-6 px-4">
-          <div className="flex flex-col gap-4">
+        {/* 8 BOTONES CAPSULARES (2 COLUMNAS DE 4 BOTONES) */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-x-10 gap-y-3.5 max-w-4xl mx-auto mt-4 px-2">
+          
+          {/* Columna 1 */}
+          <div className="flex flex-col gap-3">
             {buttonsCol1.map(btn => (
               <button
                 key={btn.id}
                 onClick={() => onNavigate(btn.id)}
-                className="group relative flex items-center bg-gradient-to-r from-[#0066c0] to-[#0055a5] hover:from-[#0073cc] hover:to-[#005bb5] text-white rounded-full p-1 pr-8 shadow-md hover:shadow-xl transition-all duration-200 transform hover:-translate-y-0.5 border border-blue-400/20 text-left cursor-pointer"
+                className="group relative flex items-center bg-[#004B93] hover:bg-[#003870] text-white rounded-full p-1 pr-6 shadow-md hover:shadow-xl transition-all duration-200 transform hover:-translate-y-0.5 border border-sky-400/20 text-left cursor-pointer"
               >
-                <div className="w-16 h-16 md:w-17 md:h-17 -my-1.5 -ml-1.5 rounded-full bg-white text-[#0066c0] flex items-center justify-center shadow-lg border border-slate-100 group-hover:scale-105 transition-transform shrink-0 z-10">
+                <div className="w-13 h-13 md:w-14 md:h-14 -my-1 -ml-1 rounded-full bg-white text-[#0066c0] flex items-center justify-center shadow-lg border border-slate-100 group-hover:scale-105 transition-transform shrink-0 z-10">
                   {btn.icon}
                 </div>
-                <span className="ml-4 md:ml-5 font-bold text-lg md:text-xl tracking-normal text-white drop-shadow-xs">
+                <span className="ml-4 font-bold text-base md:text-lg tracking-normal text-white drop-shadow-xs">
                   {btn.title}
                 </span>
               </button>
             ))}
           </div>
 
-          <div className="flex flex-col gap-4">
+          {/* Columna 2 */}
+          <div className="flex flex-col gap-3">
             {buttonsCol2.map(btn => (
               <button
                 key={btn.id}
                 onClick={() => onNavigate(btn.id)}
-                className="group relative flex items-center bg-gradient-to-r from-[#0066c0] to-[#0055a5] hover:from-[#0073cc] hover:to-[#005bb5] text-white rounded-full p-1 pr-8 shadow-md hover:shadow-xl transition-all duration-200 transform hover:-translate-y-0.5 border border-blue-400/20 text-left cursor-pointer"
+                className="group relative flex items-center bg-[#004B93] hover:bg-[#003870] text-white rounded-full p-1 pr-6 shadow-md hover:shadow-xl transition-all duration-200 transform hover:-translate-y-0.5 border border-sky-400/20 text-left cursor-pointer"
               >
-                <div className="w-16 h-16 md:w-17 md:h-17 -my-1.5 -ml-1.5 rounded-full bg-white text-[#0066c0] flex items-center justify-center shadow-lg border border-slate-100 group-hover:scale-105 transition-transform shrink-0 z-10">
+                <div className="w-13 h-13 md:w-14 md:h-14 -my-1 -ml-1 rounded-full bg-white text-[#0066c0] flex items-center justify-center shadow-lg border border-slate-100 group-hover:scale-105 transition-transform shrink-0 z-10">
                   {btn.icon}
                 </div>
-                <span className="ml-4 md:ml-5 font-bold text-lg md:text-xl tracking-normal text-white drop-shadow-xs">
+                <span className="ml-4 font-bold text-base md:text-lg tracking-normal text-white drop-shadow-xs">
                   {btn.title}
                 </span>
               </button>
             ))}
           </div>
+
         </div>
       </div>
 
       {/* PIE DE PORTADA */}
-      <div className="max-w-5xl w-full mx-auto flex items-center justify-between text-[11px] text-slate-400 font-medium z-10 pt-4">
-        <span>Laboratorios PiSA • Electrolit Centroamérica</span>
+      <div className="max-w-5xl w-full mx-auto flex items-center justify-between text-[11px] text-slate-400 font-medium z-10 pt-2">
+        <span>Laboratorios PiSA • Electrolit Costa Rica</span>
         <span>Fuente: BigQuery • psa-eltr-latam-pr.Nielsen</span>
       </div>
+
     </div>
   );
 }
@@ -1610,6 +1632,58 @@ export default function App() {
 
             {(currentView === 'matriz_kpis_reg_co' || currentView === 'matriz_kpis_reg' || currentView === 'matriz_regiones') && (
               <ColombiaMatrizKpisRegionView onBackToPortada={() => setCurrentView('portada')} />
+            )}
+
+            {(currentView === 'growth_drivers_co' || currentView === 'growth_drivers') && (
+              <ColombiaGrowthDriversView onBackToPortada={() => setCurrentView('portada')} />
+            )}
+
+            {(currentView === 'matriz_bcg_co' || currentView === 'matriz_bcg') && (
+              <ColombiaBcgView onBackToPortada={() => setCurrentView('portada')} />
+            )}
+          </>
+        )}
+
+        {/* 5. ECOSISTEMA PERÚ */}
+        {currentCountry === 'PE' && (
+          <>
+            {currentView === 'portada' && (
+              <PeruPortadaView 
+                onNavigate={(viewId) => setCurrentView(viewId)} 
+                onBackToMaster={handleBackToMaster}
+              />
+            )}
+
+            {(currentView === 'overview_pe' || currentView === 'overview') && (
+              <PeruOverviewView onBack={() => setCurrentView('portada')} />
+            )}
+
+            {(currentView === 'marca_pe' || currentView === 'marca') && (
+              <PeruMarcaView onBack={() => setCurrentView('portada')} />
+            )}
+
+            {(currentView === 'canal_pe' || currentView === 'canal' || currentView === 'canales_marca_pe') && (
+              <PeruCanalView onBack={() => setCurrentView('portada')} />
+            )}
+
+            {(currentView === 'matriz_kpis_pe' || currentView === 'matriz_kpis') && (
+              <PeruMatrizKpisView onBack={() => setCurrentView('portada')} />
+            )}
+
+            {(currentView === 'matriz_regiones_pe' || currentView === 'matriz_regiones') && (
+              <PeruMatrizKpisRegionView onBack={() => setCurrentView('portada')} />
+            )}
+
+            {(currentView === 'growth_drivers_pe' || currentView === 'growth_drivers') && (
+              <PeruGrowthDriversView onBack={() => setCurrentView('portada')} />
+            )}
+
+            {(currentView === 'marca_canal_pe' || currentView === 'indicador_marca_pe' || currentView === 'marca_canal') && (
+              <PeruMarcaCanalView onBack={() => setCurrentView('portada')} />
+            )}
+
+            {(currentView === 'mapa_pe' || currentView === 'mapa') && (
+              <PeruView onBack={() => setCurrentView('portada')} />
             )}
           </>
         )}

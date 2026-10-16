@@ -169,8 +169,8 @@ const GuatemalaPortadaView = ({ onNavigate, onBackToMaster }) => {
       </svg>
 
       {/* CABECERA SUPERIOR: LOGO HIDRAVIDA | LOGO NIELSEN */}
-      <div className="flex items-center justify-between w-full max-w-5xl mx-auto z-10 px-2">
-        <div className="flex items-center justify-center w-28 md:w-32">
+      <div className="flex items-center justify-between w-full max-w-6xl mx-auto z-10 px-2 pt-1">
+        <div className="flex items-center">
           <img 
             src="/assets/LOGOS/Hidravida-color.png" 
             alt="Hidravida Logo" 
@@ -181,29 +181,25 @@ const GuatemalaPortadaView = ({ onNavigate, onBackToMaster }) => {
           />
         </div>
 
-        {/* Logo Nielsen interactivo para regresar a la Portada Maestra */}
         <button
           onClick={onBackToMaster}
           title="Regresar a Portada Maestra de Países"
-          className="group flex items-center gap-2 p-1.5 rounded-xl hover:bg-white/80 transition-all cursor-pointer"
+          className="group flex items-center gap-2 p-1.5 rounded-xl hover:bg-slate-200/50 transition-all cursor-pointer"
         >
           <img 
             src="/assets/LOGOS/Nielsen-logo.png" 
             alt="Nielsen Logo" 
-            className="h-8 md:h-10 object-contain group-hover:scale-105 transition-transform" 
+            className="h-8 md:h-9 object-contain mix-blend-multiply group-hover:scale-105 transition-transform" 
           />
-          <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider group-hover:text-[#0066c0] hidden md:inline-block">
-            ← Países
-          </span>
         </button>
       </div>
 
-      {/* COMPOSICIÓN ARTÍSTICA CENTRAL GUATEMALA */}
-      <div className="max-w-5xl w-full mx-auto my-auto z-10 py-2">
-        <div className="relative flex flex-col items-center justify-center min-h-[290px]">
+      {/* HERO CENTRAL: MEDALLÓN GUATEMALA + ILUSTRACIÓN ARCO/VOLCANES + BOTELLA DE HIDRAVIDA */}
+      <div className="max-w-6xl w-full mx-auto my-auto z-10 py-1">
+        <div className="relative flex items-center justify-center min-h-[300px]">
           
           {/* LADO IZQUIERDO: Bandera Guatemala y Título Centrados */}
-          <div className="absolute left-0 top-0 w-28 md:w-32 flex flex-col items-center text-center z-20">
+          <div className="absolute left-2 md:left-8 top-4 flex flex-col items-center text-center z-20">
             <div className="w-24 h-24 md:w-28 md:h-28 rounded-full border-4 border-white shadow-xl overflow-hidden bg-white hover:scale-105 transition-transform duration-300 flex items-center justify-center">
               <img 
                 src="/assets/Banderas/Guatemala.png" 
@@ -211,138 +207,137 @@ const GuatemalaPortadaView = ({ onNavigate, onBackToMaster }) => {
                 className="w-full h-full object-cover"
               />
             </div>
-            <h2 className="text-2xl md:text-3xl font-black text-[#0066c0] mt-3 tracking-tight text-center whitespace-nowrap">
+            <h2 className="text-2xl md:text-3xl font-black text-[#0066c0] mt-3 tracking-tight">
               Guatemala
             </h2>
           </div>
 
-          {/* CENTRO: ILUSTRACIÓN DE NATURALEZA Y BOTELLA DE HIDRAVIDA */}
-          <div className="flex items-center justify-center gap-6 md:gap-12 relative">
+          {/* CENTRO: COMPOSICIÓN 3D + BOTELLA DE HIDRAVIDA */}
+          <div className="relative flex items-center justify-center w-full max-w-3xl min-h-[290px]">
             
-            {/* LADO IZQUIERDO DE LA BOTELLA: ARCO DE SANTA CATALINA & QUETZAL / CAFÉ */}
-            <div className="flex flex-col items-center gap-3 select-none">
-              
-              {/* Arco de Santa Catalina (Antigua Guatemala) Vectorial */}
-              <div className="w-28 h-16 relative flex items-center justify-center opacity-90">
-                <svg viewBox="0 0 120 70" className="w-full h-full stroke-amber-600 fill-none stroke-[2]" strokeLinecap="round" strokeLinejoin="round">
-                  {/* Fachada del Arco */}
-                  <rect x="25" y="15" width="70" height="20" fill="rgba(245, 158, 11, 0.08)" stroke="#d97706" strokeWidth="2" />
-                  {/* Torre del Reloj */}
-                  <rect x="48" y="2" width="24" height="14" fill="rgba(245, 158, 11, 0.15)" stroke="#d97706" strokeWidth="1.8" />
-                  <circle cx="60" cy="9" r="3.5" stroke="#d97706" strokeWidth="1.2" />
-                  {/* Pilares y Arco Abovedado */}
-                  <rect x="25" y="35" width="16" height="30" stroke="#d97706" strokeWidth="2" />
-                  <rect x="79" y="35" width="16" height="30" stroke="#d97706" strokeWidth="2" />
-                  <path d="M 41 65 L 41 45 Q 60 30 79 45 L 79 65" stroke="#d97706" strokeWidth="2.2" />
-                </svg>
-              </div>
+            {/* Siluetas de Volcanes y Paisaje Vectorial */}
+            <div className="absolute inset-0 flex items-center justify-center pointer-events-none opacity-80">
+              <svg viewBox="0 0 600 280" className="w-full h-full max-w-[580px]" fill="none" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M 10 180 Q 70 140 130 160 T 260 110 T 380 140 T 520 120 T 590 160" stroke="#d97706" strokeWidth="1.2" opacity="0.45" />
+                <path d="M 40 190 Q 110 120 180 150 T 320 80 T 440 130 T 570 140" stroke="#b45309" strokeWidth="1.5" opacity="0.6" />
+                <path d="M 90 240 L 140 190 L 165 205 L 180 150 L 210 100 L 225 110 L 240 70 L 260 120 L 280 140 L 310 180 L 330 200 L 360 220" stroke="#6b21a8" strokeWidth="2.2" opacity="0.8" />
+              </svg>
+            </div>
 
-              {/* Venadito de Cola Blanca y Ramita de Naturaleza */}
-              <div className="w-28 h-32 relative flex flex-col items-center justify-center">
-                <div className="relative group cursor-pointer">
-                  <div className="text-emerald-700 text-4xl absolute -bottom-2 -left-3 opacity-90 rotate-[-15deg]">🌿</div>
-                  <div className="text-red-600 text-2xl absolute -bottom-1 -right-1 opacity-90 animate-pulse">🍒</div>
-                  <div className="relative z-10 text-5xl md:text-6xl filter drop-shadow-md transform hover:scale-110 transition-transform select-none">
+            <div className="flex items-center justify-center gap-6 md:gap-12 relative z-20">
+              
+              {/* LADO IZQUIERDO DE LA BOTELLA: ARCO DE SANTA CATALINA & VENADO DE COLA BLANCA 3D */}
+              <div className="hidden sm:flex flex-col items-center gap-2 select-none group cursor-pointer">
+                {/* Arco de Santa Catalina */}
+                <div className="w-24 h-12 relative flex items-center justify-center opacity-85">
+                  <div className="text-3xl text-amber-500 filter drop-shadow-sm">🏛️</div>
+                </div>
+
+                {/* Venado de Cola Blanca & Naturaleza */}
+                <div className="w-28 h-28 relative flex flex-col items-center justify-center">
+                  <div className="text-emerald-700 text-3xl absolute -bottom-1 -left-2 opacity-90 rotate-[-15deg] group-hover:rotate-0 transition-transform">
+                    🌿
+                  </div>
+                  <div className="text-red-600 text-2xl absolute -bottom-1 -right-1 opacity-90">
+                    🍒
+                  </div>
+                  <div className="relative z-10 text-5xl md:text-6xl filter drop-shadow-[0_8px_12px_rgba(0,0,0,0.18)] transform group-hover:scale-110 transition-transform">
                     🦌
                   </div>
                 </div>
               </div>
-            </div>
 
-            {/* CENTRO: BOTELLA HIDRAVIDA CON GOTAS Y REFLEJO */}
-            <div className="relative flex flex-col items-center justify-center z-10 px-2">
-              <div className="absolute inset-0 -m-8 pointer-events-none opacity-80">
-                <div className="w-2 h-2 rounded-full bg-cyan-400 absolute top-4 left-6 animate-ping"></div>
-                <div className="w-3 h-3 rounded-full bg-blue-400 absolute top-12 right-4"></div>
-                <div className="w-2 h-2 rounded-full bg-purple-400 absolute bottom-14 left-4"></div>
-                <div className="w-2.5 h-2.5 rounded-full bg-blue-500 absolute bottom-8 right-8"></div>
-                <div className="w-1.5 h-1.5 rounded-full bg-cyan-400 absolute top-20 left-2"></div>
+              {/* CENTRO: BOTELLA HIDRAVIDA CON GOTAS */}
+              <div className="relative flex flex-col items-center justify-center px-1">
+                <div className="absolute inset-0 -m-8 pointer-events-none opacity-80">
+                  <div className="w-2 h-2 rounded-full bg-cyan-400 absolute top-4 left-4"></div>
+                  <div className="w-3 h-3 rounded-full bg-blue-400 absolute top-10 right-2"></div>
+                  <div className="w-2 h-2 rounded-full bg-purple-400 absolute bottom-12 left-2"></div>
+                  <div className="w-2.5 h-2.5 rounded-full bg-blue-500 absolute bottom-6 right-6"></div>
+                </div>
+
+                <div className="relative z-10 flex flex-col items-center justify-center cursor-pointer group">
+                  <img 
+                    src="/assets/Botellas/Guatemala/Hidravida_Uva_Portada.png" 
+                    alt="Botella Hidravida Uva Oficial" 
+                    className="h-60 md:h-72 object-contain drop-shadow-2xl group-hover:scale-105 transition-all duration-300"
+                    onError={(e) => {
+                      e.target.src = "/assets/Botellas/Guatemala/DG ZA_230_GU-BOTELLA_HIDRAVIDA_UVA_FRONTAL.png";
+                    }}
+                  />
+                  <div className="w-32 h-4 bg-slate-500/25 rounded-full blur-md -mt-1 group-hover:w-36 transition-all" />
+                </div>
               </div>
 
-              <div className="relative group cursor-pointer transform hover:scale-105 transition-all duration-300">
-                <img 
-                  src="/assets/Botellas/Guatemala/Hidravida_Uva_Portada.png" 
-                  alt="Botella Hidravida Uva Oficial" 
-                  className="h-64 md:h-72 object-contain filter drop-shadow-2xl"
-                  onError={(e) => {
-                    e.target.src = "/assets/Botellas/Guatemala/DG ZA_230_GU-BOTELLA_HIDRAVIDA_UVA_FRONTAL.png";
-                  }}
-                />
-                <div className="w-28 h-4 bg-slate-400/30 rounded-full blur-sm mx-auto -mt-2"></div>
-              </div>
-            </div>
+              {/* LADO DERECHO DE LA BOTELLA: VOLCANES & TEMPLO MAYA DE TIKAL 3D */}
+              <div className="hidden sm:flex flex-col items-center gap-2 select-none group cursor-pointer">
+                {/* Volcanes de Agua y Fuego */}
+                <div className="w-24 h-12 relative flex items-center justify-center opacity-85">
+                  <div className="text-3xl text-purple-600 filter drop-shadow-sm">🌋</div>
+                </div>
 
-            {/* LADO DERECHO DE LA BOTELLA: VOLCANES Y TEMPLO MAYA */}
-            <div className="flex flex-col items-center gap-3 select-none">
-              
-              {/* Volcán de Agua y Fuego Vectorial */}
-              <div className="w-32 h-16 relative flex items-center justify-center opacity-90">
-                <svg viewBox="0 0 130 70" className="w-full h-full stroke-purple-600 fill-none stroke-[2.2]" strokeLinecap="round">
-                  {/* Nube sobre el cráter */}
-                  <path d="M 55 12 Q 70 6 85 12 Q 95 18 85 22 Q 70 22 55 16 Z" strokeWidth="1.2" className="stroke-slate-400 fill-white/40" />
-                  {/* Silueta Volcán Principal */}
-                  <path d="M 15 62 L 58 20 L 72 20 L 115 62" stroke="#6b21a8" strokeWidth="2.2" />
-                  {/* Volcán Secundario */}
-                  <path d="M 35 62 L 68 32 L 102 62" strokeWidth="1.4" className="stroke-purple-400" />
-                </svg>
-              </div>
-
-              {/* Templo Maya de Tikal / Selva */}
-              <div className="w-32 h-32 relative flex flex-col items-center justify-center">
-                <div className="relative flex flex-col items-center justify-center group">
-                  <div className="text-emerald-600 text-5xl absolute -top-4 -left-2 opacity-80">🍃</div>
-                  <div className="text-emerald-500 text-5xl absolute -bottom-2 -right-3 opacity-90">🌱</div>
-                  <div className="relative z-10 text-5xl md:text-6xl filter drop-shadow-md transform hover:scale-110 transition-transform">
+                {/* Templo Maya de Tikal 3D */}
+                <div className="w-28 h-28 relative flex flex-col items-center justify-center">
+                  <div className="text-emerald-600 text-3xl absolute -bottom-1 -left-2 opacity-90">
+                    🍃
+                  </div>
+                  <div className="text-emerald-500 text-2xl absolute -bottom-1 -right-1 opacity-85">
+                    🌱
+                  </div>
+                  <div className="relative z-10 text-5xl md:text-6xl filter drop-shadow-[0_8px_12px_rgba(0,0,0,0.18)] transform group-hover:scale-110 transition-transform">
                     🏛️
                   </div>
                 </div>
               </div>
 
             </div>
-
           </div>
         </div>
 
-        {/* 8 BOTONES CAPSULARES DE NAVEGACIÓN ESTILO POWER BI */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-x-12 gap-y-5 max-w-4xl mx-auto mt-6 px-4">
-          <div className="flex flex-col gap-4">
+        {/* 8 BOTONES CAPSULARES (2 COLUMNAS DE 4 BOTONES) */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-x-10 gap-y-3.5 max-w-4xl mx-auto mt-4 px-2">
+          
+          {/* Columna 1 */}
+          <div className="flex flex-col gap-3">
             {buttonsCol1.map(btn => (
               <button
                 key={btn.id}
                 onClick={() => onNavigate(btn.id)}
-                className="group relative flex items-center bg-gradient-to-r from-[#0066c0] to-[#0055a5] hover:from-[#0073cc] hover:to-[#005bb5] text-white rounded-full p-1 pr-8 shadow-md hover:shadow-xl transition-all duration-200 transform hover:-translate-y-0.5 border border-blue-400/20 text-left cursor-pointer"
+                className="group relative flex items-center bg-[#004B93] hover:bg-[#003870] text-white rounded-full p-1 pr-6 shadow-md hover:shadow-xl transition-all duration-200 transform hover:-translate-y-0.5 border border-sky-400/20 text-left cursor-pointer"
               >
-                <div className="w-16 h-16 md:w-17 md:h-17 -my-1.5 -ml-1.5 rounded-full bg-white text-[#0066c0] flex items-center justify-center shadow-lg border border-slate-100 group-hover:scale-105 transition-transform shrink-0 z-10">
+                <div className="w-13 h-13 md:w-14 md:h-14 -my-1 -ml-1 rounded-full bg-white text-[#0066c0] flex items-center justify-center shadow-lg border border-slate-100 group-hover:scale-105 transition-transform shrink-0 z-10">
                   {btn.icon}
                 </div>
-                <span className="ml-4 md:ml-5 font-bold text-lg md:text-xl tracking-normal text-white drop-shadow-xs">
+                <span className="ml-4 font-bold text-base md:text-lg tracking-normal text-white drop-shadow-xs">
                   {btn.title}
                 </span>
               </button>
             ))}
           </div>
 
-          <div className="flex flex-col gap-4">
+          {/* Columna 2 */}
+          <div className="flex flex-col gap-3">
             {buttonsCol2.map(btn => (
               <button
                 key={btn.id}
                 onClick={() => onNavigate(btn.id)}
-                className="group relative flex items-center bg-gradient-to-r from-[#0066c0] to-[#0055a5] hover:from-[#0073cc] hover:to-[#005bb5] text-white rounded-full p-1 pr-8 shadow-md hover:shadow-xl transition-all duration-200 transform hover:-translate-y-0.5 border border-blue-400/20 text-left cursor-pointer"
+                className="group relative flex items-center bg-[#004B93] hover:bg-[#003870] text-white rounded-full p-1 pr-6 shadow-md hover:shadow-xl transition-all duration-200 transform hover:-translate-y-0.5 border border-sky-400/20 text-left cursor-pointer"
               >
-                <div className="w-16 h-16 md:w-17 md:h-17 -my-1.5 -ml-1.5 rounded-full bg-white text-[#0066c0] flex items-center justify-center shadow-lg border border-slate-100 group-hover:scale-105 transition-transform shrink-0 z-10">
+                <div className="w-13 h-13 md:w-14 md:h-14 -my-1 -ml-1 rounded-full bg-white text-[#0066c0] flex items-center justify-center shadow-lg border border-slate-100 group-hover:scale-105 transition-transform shrink-0 z-10">
                   {btn.icon}
                 </div>
-                <span className="ml-4 md:ml-5 font-bold text-lg md:text-xl tracking-normal text-white drop-shadow-xs">
+                <span className="ml-4 font-bold text-base md:text-lg tracking-normal text-white drop-shadow-xs">
                   {btn.title}
                 </span>
               </button>
             ))}
           </div>
+
         </div>
       </div>
 
       {/* PIE DE PORTADA */}
-      <div className="max-w-5xl w-full mx-auto flex items-center justify-between text-[11px] text-slate-400 font-medium z-10 pt-4">
+      <div className="max-w-5xl w-full mx-auto flex items-center justify-between text-[11px] text-slate-400 font-medium z-10 pt-2">
         <span>Laboratorios PiSA • Hidravida Guatemala</span>
         <span>Fuente: BigQuery • psa-eltr-latam-pr.Nielsen</span>
       </div>
